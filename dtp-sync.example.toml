@@ -1,0 +1,16 @@
+# dtp-sync.toml: Sync Server configuration (specs/sync-server.md).
+# The writer key comes from DTP_SYNC_KEY, key_file, or <data_dir>/sync.key.
+# Grant it on each target: dtp-global members add <pubkey> write
+
+relays = []
+targets = ["ws://127.0.0.1:3880/"]
+data_dir = "data-sync"
+
+[backfill]
+enabled = true
+page = 500
+max_pages = 200
+
+[live]
+enabled = true
+overlap_seconds = 600

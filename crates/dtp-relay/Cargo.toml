@@ -1,12 +1,19 @@
 [package]
 name = "dtp-relay"
-description = "Relay client for the Sync Server"
+description = "Minimal Nostr relay client (backfill, live REQ) and an authenticated EVENT pusher for the Sync Server"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+dtp-model.workspace = true
+tokio.workspace = true
+tokio-tungstenite.workspace = true
+futures-util.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
 
 [lints]
 workspace = true
