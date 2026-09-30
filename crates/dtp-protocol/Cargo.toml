@@ -1,0 +1,12 @@
+[package]
+name = "dtp-protocol"
+description = "NIP-01 framing and DTP messages"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true

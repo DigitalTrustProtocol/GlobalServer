@@ -1,0 +1,18 @@
+[package]
+name = "dtp-graph"
+description = "Compact in-memory WoT graph store: packed CSRs, delta, dead bits, slots, binding indexes"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+dtp-model.workspace = true
+im.workspace = true
+hex.workspace = true
+sha2.workspace = true
+
+[dev-dependencies]
+
+[lints]
+workspace = true

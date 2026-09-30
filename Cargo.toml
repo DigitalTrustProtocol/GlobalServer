@@ -1,0 +1,63 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/dtp-model",
+    "crates/dtp-graph",
+    "crates/dtp-resolve",
+    "crates/dtp-store",
+    "crates/dtp-protocol",
+    "crates/dtp-api",
+    "crates/dtp-relay",
+    "crates/dtp-server",
+    "crates/dtp-sync-server",
+    "crates/dtp-conformance",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/DigitalTrustProtocol/GlobalServer"
+rust-version = "1.85"
+
+[workspace.dependencies]
+dtp-model = { path = "crates/dtp-model" }
+dtp-graph = { path = "crates/dtp-graph" }
+dtp-resolve = { path = "crates/dtp-resolve" }
+dtp-store = { path = "crates/dtp-store" }
+dtp-protocol = { path = "crates/dtp-protocol" }
+dtp-api = { path = "crates/dtp-api" }
+dtp-relay = { path = "crates/dtp-relay" }
+
+anyhow = "1"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+sha2 = "0.10"
+k256 = { version = "0.13", features = ["schnorr"] }
+rand = "0.8"
+hex = "0.4"
+bech32 = "0.11"
+im = "15"
+arc-swap = "1"
+rayon = "1"
+redb = "2"
+tokio = { version = "1", features = ["full"] }
+axum = { version = "0.8", features = ["ws"] }
+tokio-tungstenite = "0.26"
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+toml = "0.8"
+xxhash-rust = { version = "0.8", features = ["xxh3"] }
+tempfile = "3"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

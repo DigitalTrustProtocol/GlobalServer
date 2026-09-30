@@ -1,0 +1,8 @@
+/target/
+**/*.rs.bk
+/data/
+/*.redb
+/dtp-global.toml
+/dtp-sync.toml
+*.key
+.env

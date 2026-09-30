@@ -1,0 +1,15 @@
+[package]
+name = "dtp-sync-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "dtp-sync"
+path = "src/main.rs"
+
+[dependencies]
+
+[lints]
+workspace = true

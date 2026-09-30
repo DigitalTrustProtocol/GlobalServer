@@ -1,0 +1,21 @@
+[package]
+name = "dtp-model"
+description = "DTP ids, kinds, records, scope profiles, NIP-32009 / 32014 / 39 / 09 validation and normalization"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+k256.workspace = true
+rand.workspace = true
+hex.workspace = true
+bech32.workspace = true
+thiserror.workspace = true
+url = "2"
+
+[lints]
+workspace = true
