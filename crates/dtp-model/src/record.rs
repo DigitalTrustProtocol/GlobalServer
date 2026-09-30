@@ -47,7 +47,7 @@ impl ScoreMicro {
 
     /// The score as a JavaScript-compatible JSON number (`12`, `12.5`).
     pub fn to_json(self) -> Value {
-        if self.0 % 1_000_000 == 0 {
+        if self.0.is_multiple_of(1_000_000) {
             Value::Number(Number::from(self.0 / 1_000_000))
         } else {
             let text = self.to_canonical_string();

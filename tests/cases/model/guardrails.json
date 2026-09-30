@@ -1,0 +1,80 @@
+[
+  {
+    "id": "budget-node",
+    "tags": ["budget", "guardrails"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@b", "context": "identity", "value": 1 },
+      { "pubkey": "@b", "subject": "@c", "context": "identity", "value": 1 },
+      { "pubkey": "@c", "subject": "@d", "context": "identity", "value": 1 }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@d" }, "context": "identity", "maxReachedNodes": 2 },
+        "expect": { "connected": false, "statements": [], "truncated": true, "truncatedReasons": ["nodeBudget"], "completeDepth": 1 }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@c" }, "context": "identity", "maxReachedNodes": 2 },
+        "expect": { "connected": true, "degree": 2, "truncated": false }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@d" }, "context": "identity", "maxReachedNodes": 4 },
+        "expect": { "connected": true, "degree": 3, "truncated": false }
+      }
+    ]
+  },
+  {
+    "id": "budget-record",
+    "tags": ["budget", "guardrails"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@b1", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@b2", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@b3", "context": "identity", "value": 1 },
+      { "pubkey": "@b1", "subject": "@c", "context": "identity", "value": 1 }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@c" }, "context": "identity", "maxWalkRecords": 2 },
+        "expect": { "connected": false, "truncated": true, "truncatedReasons": ["edgeBudget"], "completeDepth": 0 }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@b1" }, "context": "identity", "maxWalkRecords": 2 },
+        "expect": { "connected": true, "degree": 1, "truncated": false }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@c" }, "context": "identity", "maxWalkRecords": 3 },
+        "expect": { "connected": true, "degree": 2 }
+      },
+      {
+        "type": "rating",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "post:id:1" }, "maxWalkRecords": 2 },
+        "expect": { "claimCount": 0 }
+      }
+    ]
+  },
+  {
+    "id": "statement-limit",
+    "tags": ["guardrails"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@a1", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@a2", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@a3", "context": "identity", "value": 1 },
+      { "pubkey": "@a1", "subject": "@s", "context": "identity", "value": 1 },
+      { "pubkey": "@a2", "subject": "@s", "context": "identity", "value": 1 },
+      { "pubkey": "@a3", "subject": "@s", "context": "identity", "value": -1 }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@s" }, "context": "identity", "statementLimit": 2 },
+        "expect": { "degree": 2, "trust": 2, "distrust": 1, "statements": ["…", "…"], "statementsTruncated": true,
+                    "truncated": true, "truncatedReasons": ["statementLimit"] }
+      }
+    ]
+  }
+]

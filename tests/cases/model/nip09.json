@@ -1,0 +1,104 @@
+[
+  {
+    "id": "nip09-delete-by-id-sets-floor",
+    "tags": ["nip09", "slots"],
+    "ops": [
+      { "op": "apply", "record": { "id": "@e1", "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1, "created_at": 100, "addressKey": "32009:@alice:s" } },
+      { "op": "delete", "pubkey": "@alice", "created_at": 150, "e": ["@e1"] },
+      { "op": "apply", "record": { "id": "@e1", "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1, "created_at": 100, "addressKey": "32009:@alice:s" } },
+      { "op": "apply", "record": { "id": "@e0", "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1, "created_at": 90, "addressKey": "32009:@alice:s" } }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity" },
+        "expect": { "connected": false }
+      }
+    ]
+  },
+  {
+    "id": "nip09-later-record-above-floor",
+    "tags": ["nip09", "slots"],
+    "ops": [
+      { "op": "apply", "record": { "id": "@e1", "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1, "created_at": 100, "addressKey": "32009:@alice:s" } },
+      { "op": "delete", "pubkey": "@alice", "created_at": 150, "e": ["@e1"] },
+      { "op": "apply", "record": { "id": "@e2", "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": -1, "created_at": 101, "addressKey": "32009:@alice:s" } }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity" },
+        "expect": { "connected": true, "distrust": 1, "sourceEventIds": ["@e2"] }
+      }
+    ]
+  },
+  {
+    "id": "nip09-delete-by-address-and-foreign-author",
+    "tags": ["nip09", "slots"],
+    "ops": [
+      { "op": "apply", "record": { "id": "@e1", "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1, "created_at": 100, "addressKey": "32009:@alice:s" } },
+      { "op": "apply", "record": { "id": "@e2", "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1, "created_at": 100, "addressKey": "32009:@alice:c" } },
+      { "op": "delete", "pubkey": "@mallory", "created_at": 150, "e": ["@e2"], "a": ["32009:@alice:c"] },
+      { "op": "delete", "pubkey": "@alice", "created_at": 200, "a": ["32009:@alice:s"] },
+      { "op": "apply", "record": { "id": "@e3", "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1, "created_at": 199, "addressKey": "32009:@alice:s" } }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity" },
+        "expect": { "connected": false }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@carol" }, "context": "identity" },
+        "expect": { "connected": true, "degree": 1 }
+      }
+    ]
+  },
+  {
+    "id": "nip09-delete-before-arrival",
+    "tags": ["nip09"],
+    "ops": [
+      { "op": "delete", "pubkey": "@alice", "created_at": 150, "e": ["@late"] },
+      { "op": "apply", "record": { "id": "@late", "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1, "created_at": 100, "addressKey": "32009:@alice:s" } }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity" },
+        "expect": { "connected": false }
+      }
+    ]
+  },
+  {
+    "id": "claims-unclaim-op",
+    "tags": ["bind", "ops"],
+    "ops": [
+      { "op": "apply", "record": { "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1 } },
+      { "op": "apply", "record": { "pubkey": "@carol", "subjectType": "i", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@p" } },
+      { "op": "apply", "record": { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 } },
+      { "op": "claim", "pubkey": "@p", "twitterId": "42" },
+      { "op": "unclaim", "pubkey": "@p" }
+    ],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 3 }, "strict": { "connected": false } } }
+    ]
+  },
+  {
+    "id": "own-unown-op",
+    "tags": ["bind", "own-evidence", "ops"],
+    "ops": [
+      { "op": "apply", "record": { "pubkey": "@alice", "subjectType": "i", "subject": "user:id:42", "context": "identity", "value": 1 } },
+      { "op": "apply", "record": { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 } },
+      { "op": "own", "root": "@alice", "iKey": "user:id:42", "pubkey": "@p", "source": "post" },
+      { "op": "own", "root": "@bob", "iKey": "user:id:42", "pubkey": "@p", "source": "bio" }
+    ],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "binding": { "source": "own-post", "pubkey": "@p" } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 2 } } }
+    ]
+  }
+]

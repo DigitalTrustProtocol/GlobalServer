@@ -1,0 +1,336 @@
+[
+  {
+    "id": "walk-direct-and-two-hop",
+    "tags": ["walk"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1 },
+      { "pubkey": "@bob", "subject": "@carol", "context": "identity", "value": 1, "content": "met in person", "labels": ["friend"] }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity" },
+        "expect": { "connected": true, "degree": 1, "trust": 1, "distrust": 0, "trustValue": 1, "resolution": "trusted",
+                    "direct": { "author": "@alice", "distance": 0 },
+                    "statements": [{ "author": "@alice", "value": 1, "distance": 0, "contextMatch": "exact", "requestedContext": "identity" }] }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@carol" }, "context": "identity" },
+        "expect": { "connected": true, "degree": 2, "trust": 1, "resolution": "trusted",
+                    "statements": [{ "author": "@bob", "distance": 1, "content": "met in person", "labels": ["friend"] }] }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@nobody" }, "context": "identity" },
+        "expect": { "connected": false, "degree": 0, "resolution": "none", "statements": [], "sourceEventIds": [] }
+      }
+    ]
+  },
+  {
+    "id": "walk-nearest-degree-wins",
+    "tags": ["walk"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1 },
+      { "pubkey": "@bob", "subject": "@dave", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1 },
+      { "pubkey": "@carol", "subject": "@erin", "context": "identity", "value": 1 },
+      { "pubkey": "@erin", "subject": "@dave", "context": "identity", "value": -1 }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@dave" }, "context": "identity" },
+        "expect": { "degree": 2, "trust": 1, "distrust": 0, "resolution": "trusted", "statements": [{ "author": "@bob" }] }
+      }
+    ]
+  },
+  {
+    "id": "walk-same-degree-mixed",
+    "tags": ["walk", "resolution"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@b", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@c", "context": "identity", "value": 1 },
+      { "pubkey": "@b", "subject": "@d", "context": "identity", "value": 1 },
+      { "pubkey": "@c", "subject": "@d", "context": "identity", "value": -1 }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@d" }, "context": "identity" },
+        "expect": { "degree": 2, "trust": 1, "distrust": 1, "trustValue": 0, "resolution": "mixed" }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@d" }, "context": "identity", "followTrustRed": 60, "followTrustThreshold": 90 },
+        "expect": { "resolution": "distrusted", "followTrustThreshold": 90, "followTrustRed": 60 }
+      }
+    ]
+  },
+  {
+    "id": "walk-self-loop-and-root-subject",
+    "tags": ["walk"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1 },
+      { "pubkey": "@bob", "subject": "@bob", "context": "identity", "value": 1 },
+      { "pubkey": "@bob", "subject": "@alice", "context": "identity", "value": 1 }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity" },
+        "expect": { "degree": 1, "trust": 1, "statements": [{ "author": "@alice" }] }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@alice" }, "context": "identity" },
+        "expect": { "degree": 2, "trust": 1, "statements": [{ "author": "@bob", "distance": 1 }] }
+      }
+    ]
+  },
+  {
+    "id": "walk-distrust-and-neutral-are-not-hops",
+    "tags": ["walk"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": -1 },
+      { "pubkey": "@bob", "subject": "@carol", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@nia", "context": "identity", "value": 0 },
+      { "pubkey": "@nia", "subject": "@carol", "context": "identity", "value": 1 }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@carol" }, "context": "identity" },
+        "expect": { "connected": false, "statements": [] }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity" },
+        "expect": { "connected": true, "degree": 1, "distrust": 1, "resolution": "distrusted" }
+      }
+    ]
+  },
+  {
+    "id": "walk-neutral-only-degree-continues",
+    "tags": ["walk", "gap:G4"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@s", "context": "identity", "value": 0 },
+      { "pubkey": "@alice", "subject": "@b", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@c", "context": "identity", "value": 1 },
+      { "pubkey": "@b", "subject": "@s", "context": "identity", "value": 1 },
+      { "pubkey": "@c", "subject": "@s", "context": "identity", "value": 0 },
+      { "pubkey": "@alice", "subject": "@lonely", "context": "identity", "value": 0 }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@s" }, "context": "identity" },
+        "expectModel": { "degree": 2, "trust": 1, "neutral": 1, "statements": [{ "value": 0 }, { "value": 1 }] }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@lonely" }, "context": "identity" },
+        "expectModel": { "connected": false, "degree": 0, "statements": [], "neutral": 0 }
+      }
+    ]
+  },
+  {
+    "id": "walk-context-chain-and-attest",
+    "tags": ["walk", "context"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@bob", "context": "", "value": 1 },
+      { "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1 },
+      { "pubkey": "@carol", "subject": "@dave", "context": "identity:attest", "value": 1 },
+      { "pubkey": "@alice", "subject": "@sec", "context": "security", "value": 1 }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity" },
+        "expect": { "degree": 1, "statements": [{ "context": "", "contextMatch": "general" }] }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@dave" }, "context": "identity" },
+        "expect": { "connected": false }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@sec" }, "context": "security:access:frontdoor" },
+        "expect": { "degree": 1, "statements": [{ "context": "security", "contextMatch": "parent", "requestedContext": "security:access:frontdoor" }] }
+      }
+    ]
+  },
+  {
+    "id": "walk-inactive-and-delete-fall-through-neutral-occupies",
+    "tags": ["walk", "context", "window"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1, "expire": 50 },
+      { "pubkey": "@alice", "subject": "@bob", "context": "", "value": 1 },
+      { "pubkey": "@alice", "subject": "@carl", "context": "identity", "value": null },
+      { "pubkey": "@alice", "subject": "@carl", "context": "", "value": -1 },
+      { "pubkey": "@alice", "subject": "@nate", "context": "identity", "value": 0 },
+      { "pubkey": "@alice", "subject": "@nate", "context": "", "value": 1 },
+      { "pubkey": "@nate", "subject": "@zoe", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@future", "context": "identity", "value": 1, "activate": 2000000 }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity" },
+        "expect": { "degree": 1, "statements": [{ "context": "", "contextMatch": "general" }] }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity", "now": 40 },
+        "expect": { "degree": 1, "statements": [{ "context": "identity", "activeUntil": 50 }] }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@carl" }, "context": "identity" },
+        "expect": { "degree": 1, "distrust": 1, "statements": [{ "contextMatch": "general" }] }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zoe" }, "context": "identity" },
+        "expect": { "connected": false }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@future" }, "context": "identity" },
+        "expect": { "connected": false }
+      }
+    ]
+  },
+  {
+    "id": "walk-max-depth",
+    "tags": ["walk", "bounds"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@b", "context": "identity", "value": 1 },
+      { "pubkey": "@b", "subject": "@c", "context": "identity", "value": 1 },
+      { "pubkey": "@c", "subject": "@d", "context": "identity", "value": 1 },
+      { "pubkey": "@d", "subject": "@e", "context": "identity", "value": 1 },
+      { "pubkey": "@e", "subject": "@f", "context": "identity", "value": 1 }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@f" }, "context": "identity" },
+        "expect": { "connected": false, "truncated": false }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@f" }, "context": "identity", "bounds": { "maxDepth": 5 } },
+        "expect": { "connected": true, "degree": 5, "statements": [{ "distance": 4 }] }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@f" }, "context": "identity", "bounds": { "maxDepth": 5 }, "format": "path" },
+        "expect": {
+          "degree": 5,
+          "pathView": {
+            "nodes": [
+              { "subject": { "type": "p", "value": "@f" }, "depth": 5, "kind": "pubkey" },
+              { "subject": { "type": "p", "value": "@e" }, "depth": 4, "kind": "pubkey" },
+              { "subject": { "type": "p", "value": "@d" }, "depth": 3, "kind": "pubkey" },
+              { "subject": { "type": "p", "value": "@c" }, "depth": 2, "kind": "pubkey" },
+              { "subject": { "type": "p", "value": "@b" }, "depth": 1, "kind": "pubkey" },
+              { "subject": { "type": "p", "value": "@alice" }, "depth": 0, "kind": "pubkey" }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "walk-post-trust-falls-back-to-global",
+    "tags": ["walk", "context", "profile"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@b", "context": "identity", "value": 1 },
+      { "pubkey": "@b", "subjectType": "i", "subject": "post:id:2080659774136291424", "context": "", "value": 1, "scopeRank": 2 }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "post:id:2080659774136291424" }, "context": "identity" },
+        "expect": { "degree": 2, "statements": [{ "contextMatch": "general", "subject": { "type": "i", "value": "post:id:2080659774136291424" } }] }
+      }
+    ]
+  },
+  {
+    "id": "walk-tie-break-scope-rank",
+    "tags": ["walk", "gap:G2"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1, "scopeRank": 2, "created_at": 100, "addressKey": "32009:@alice:slot-x" },
+      { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": -1, "scopeRank": 1, "created_at": 200, "addressKey": "32009:@alice:slot-empty" }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity" },
+        "expectModel": { "degree": 1, "trust": 1, "distrust": 0, "statements": [{ "value": 1 }] }
+      }
+    ]
+  },
+  {
+    "id": "walk-delete-own-slot-only",
+    "tags": ["walk", "gap:G3"],
+    "ops": [
+      { "op": "apply", "record": { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1, "scopeRank": 2, "created_at": 100, "addressKey": "32009:@alice:slot-x" } },
+      { "op": "apply", "record": { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1, "scopeRank": 1, "created_at": 100, "addressKey": "32009:@alice:slot-empty" } },
+      { "op": "apply", "record": { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": null, "scopeRank": 1, "created_at": 150, "addressKey": "32009:@alice:slot-empty" } }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity" },
+        "expectModel": { "degree": 1, "trust": 1 }
+      }
+    ]
+  },
+  {
+    "id": "walk-slot-winner-older-discarded",
+    "tags": ["walk", "slots"],
+    "ops": [
+      { "op": "apply", "record": { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": null, "created_at": 300, "addressKey": "32009:@alice:s" } },
+      { "op": "apply", "record": { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1, "created_at": 200, "addressKey": "32009:@alice:s" } },
+      { "op": "apply", "record": { "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1, "created_at": 200, "addressKey": "32009:@alice:c" } },
+      { "op": "remove", "addressKey": "32009:@alice:c" }
+    ],
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@bob" }, "context": "identity" },
+        "expect": { "connected": false }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@carol" }, "context": "identity" },
+        "expect": { "connected": false }
+      }
+    ]
+  },
+  {
+    "id": "spec-example-strict-bind",
+    "tags": ["walk", "threshold", "bind"],
+    "profile": "x.com",
+    "records": [
+      { "addressKey": "32009:@alice:…", "id": "@e1", "pubkey": "@alice", "kind": 32009, "created_at": 100, "subjectType": "p",
+        "subject": "@bob", "context": "identity", "value": 1, "scopeRank": 1 },
+      { "addressKey": "32009:@bob:…", "id": "@e2", "pubkey": "@bob", "kind": 32009, "created_at": 110, "subjectType": "i",
+        "subject": "user:id:11348282", "context": "identity", "value": 1, "scopeRank": 2, "hintPubkey": "@carol" }
+    ],
+    "claims": [{ "pubkey": "@carol", "twitterId": "11348282" }],
+    "ownEvidence": [],
+    "ops": null,
+    "queries": [
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:11348282" }, "context": "identity", "now": 1000,
+                   "bounds": { "maxDepth": 4 }, "followTrustThreshold": 75, "followTrustRed": 25, "format": "default", "bindingMode": "strict" },
+        "expect": { "connected": true, "degree": 2, "trust": 1, "distrust": 0, "resolution": "trusted", "statements": ["…"],
+                    "binding": { "mode": "strict", "pubkey": "@carol", "source": "witness", "confirmed": true, "witnessEventId": "@e2", "witnessDegree": 2 } }
+      }
+    ]
+  }
+]

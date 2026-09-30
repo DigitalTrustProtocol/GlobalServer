@@ -1,0 +1,214 @@
+[
+  {
+    "id": "lookup-incoming-selected-raw-values",
+    "tags": ["lookup"],
+    "records": [
+      { "pubkey": "@a", "subject": "@t", "context": "identity", "value": 1, "created_at": 101 },
+      { "pubkey": "@b", "subject": "@t", "context": "", "value": -1, "created_at": 102 },
+      { "pubkey": "@c", "subject": "@t", "context": "identity", "value": 1, "created_at": 103 },
+      { "pubkey": "@c", "subject": "@t", "context": "", "value": -1, "created_at": 104 },
+      { "pubkey": "@d", "subject": "@t", "context": "identity", "value": 0, "created_at": 105, "labels": ["watch"], "content": "hmm" },
+      { "pubkey": "@e", "subject": "@t", "context": "other", "value": 1, "created_at": 106 },
+      { "pubkey": "@f", "subject": "@t", "context": "identity", "value": 1, "created_at": 107, "expire": 5 }
+    ],
+    "queries": [
+      {
+        "type": "lookup-incoming",
+        "input": { "keys": ["p:@t"], "context": "identity", "withTotals": true },
+        "expect": { "items": [
+          { "author": "@d", "value": 0, "context": "identity", "createdAt": 105, "labels": ["watch"], "content": "hmm", "kind": 32009, "subject": { "type": "p", "value": "@t" } },
+          { "author": "@c", "value": 1, "context": "identity" },
+          { "author": "@b", "value": -1, "context": "" },
+          { "author": "@a", "value": 1 }
+        ], "totals": { "trust": 2, "neutral": 1, "distrust": 1, "ratings": 0 } }
+      },
+      {
+        "type": "lookup-incoming",
+        "input": { "keys": ["p:@t"], "context": "identity", "mode": "raw" },
+        "expect": { "items": [{ "author": "@d" }, { "author": "@c", "value": -1 }, { "author": "@c", "value": 1 }, { "author": "@b" }, { "author": "@a" }] }
+      },
+      {
+        "type": "lookup-incoming",
+        "input": { "keys": ["p:@t"], "context": "identity", "values": [1] },
+        "expect": { "items": [{ "author": "@c" }, { "author": "@a" }] }
+      },
+      {
+        "type": "lookup-incoming",
+        "input": { "keys": ["p:@t"], "contextMatch": "any", "mode": "raw", "includeInactive": true },
+        "expect": { "items": [{ "author": "@f", "activeUntil": 5 }, { "author": "@e" }, { "author": "@d" }, { "author": "@c" }, { "author": "@c" }, { "author": "@b" }, { "author": "@a" }] }
+      },
+      {
+        "type": "lookup-incoming",
+        "input": { "keys": ["p:@t"], "context": "identity", "order": "author" },
+        "expect": { "items": ["…", "…", "…", "…"] }
+      },
+      {
+        "type": "lookup-counts",
+        "input": { "keys": ["p:@t"], "direction": "incoming", "context": "identity" },
+        "expect": { "counts": { "p:@t": { "trust": 2, "neutral": 1, "distrust": 1, "ratings": 0 } } }
+      },
+      {
+        "type": "lookup-incoming",
+        "input": { "keys": ["p:@t"], "context": "identity" },
+        "pages": [
+          { "limit": 3, "expectItems": [{ "author": "@d" }, { "author": "@c" }, { "author": "@b" }], "expectNextCursor": true },
+          { "limit": 3, "expectItems": [{ "author": "@a" }], "expectNextCursor": false }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lookup-incoming-merge-keys",
+    "tags": ["lookup", "mergeKeys"],
+    "records": [
+      { "pubkey": "@a", "subjectType": "i", "subject": "user:id:42", "context": "identity", "value": 1, "created_at": 101 },
+      { "pubkey": "@a", "subject": "@p", "context": "identity", "value": 1, "created_at": 102 },
+      { "pubkey": "@b", "subjectType": "i", "subject": "user:id:42", "context": "identity", "value": 1, "created_at": 103 },
+      { "pubkey": "@b", "subject": "@p", "context": "identity", "value": -1, "created_at": 104 },
+      { "pubkey": "@c", "subjectType": "i", "subject": "user:id:42", "context": "identity", "value": 0, "created_at": 105 }
+    ],
+    "queries": [
+      {
+        "type": "lookup-incoming",
+        "input": { "keys": ["i:user:id:42", "p:@p"], "context": "identity", "mergeKeys": true, "withTotals": true },
+        "expect": { "items": [
+          { "author": "@c", "subject": { "type": "i", "value": "user:id:42" } },
+          { "author": "@b", "subject": { "type": "p", "value": "@p" }, "value": -1 },
+          { "author": "@b", "subject": { "type": "i", "value": "user:id:42" }, "value": 1 },
+          { "author": "@a", "subject": { "type": "p", "value": "@p" } }
+        ], "totals": { "trust": 2, "neutral": 1, "distrust": 1, "ratings": 0 } }
+      },
+      {
+        "type": "lookup-incoming",
+        "input": { "keys": ["i:user:id:42", "p:@p"], "context": "identity" },
+        "expect": { "items": ["…", "…", "…", "…", "…"] }
+      },
+      {
+        "type": "lookup-counts",
+        "input": { "keys": ["i:user:id:42", "p:@p"], "direction": "incoming", "context": "identity", "mergeKeys": true },
+        "expect": { "counts": {
+          "i:user:id:42": { "trust": 2, "neutral": 1, "distrust": 0 },
+          "p:@p": { "trust": 1, "distrust": 1 },
+          "merged": { "trust": 2, "neutral": 1, "distrust": 1 }
+        } }
+      }
+    ]
+  },
+  {
+    "id": "lookup-outgoing-subject-types-and-kinds",
+    "tags": ["lookup"],
+    "records": [
+      { "pubkey": "@a", "subject": "@b", "context": "identity", "value": 1, "created_at": 101 },
+      { "pubkey": "@a", "subjectType": "i", "subject": "user:id:5", "context": "identity", "value": -1, "created_at": 102 },
+      { "pubkey": "@a", "subjectType": "i", "subject": "post:id:9", "context": "", "value": 1, "created_at": 103, "scopeRank": 2 },
+      { "pubkey": "@a", "kind": 32014, "subjectType": "i", "subject": "post:id:9", "value": 90, "created_at": 104, "scopeRank": 2 },
+      { "pubkey": "@z", "subject": "@a", "context": "identity", "value": 1, "created_at": 105 }
+    ],
+    "queries": [
+      {
+        "type": "lookup-outgoing",
+        "input": { "keys": ["p:@a"], "context": "identity" },
+        "expect": { "items": [{ "subject": { "type": "i", "value": "post:id:9" } }, { "subject": { "type": "i", "value": "user:id:5" } }, { "subject": { "type": "p", "value": "@b" } }] }
+      },
+      {
+        "type": "lookup-outgoing",
+        "input": { "keys": ["p:@a"], "context": "identity", "subjectTypes": ["p", "user:id"] },
+        "expect": { "items": [{ "subject": { "type": "i", "value": "user:id:5" } }, { "subject": { "type": "p", "value": "@b" } }] }
+      },
+      {
+        "type": "lookup-outgoing",
+        "input": { "keys": ["p:@a"], "kinds": [32014] },
+        "expect": { "items": [{ "kind": 32014, "score": 90, "subject": { "type": "i", "value": "post:id:9" } }] }
+      },
+      {
+        "type": "lookup-counts",
+        "input": { "keys": ["p:@a"], "direction": "outgoing", "context": "identity", "kinds": [32009, 32014] },
+        "expect": { "counts": { "p:@a": { "trust": 2, "neutral": 0, "distrust": 1, "ratings": 0 } } }
+      },
+      {
+        "type": "lookup-counts",
+        "input": { "keys": ["p:@a"], "direction": "outgoing", "kinds": [32009, 32014], "contextMatch": "any" },
+        "expect": { "counts": { "p:@a": { "trust": 2, "neutral": 0, "distrust": 1, "ratings": 1 } } }
+      }
+    ]
+  },
+  {
+    "id": "lookup-rating-incoming-labels",
+    "tags": ["lookup", "rating"],
+    "records": [
+      { "pubkey": "@a", "kind": 32014, "subjectType": "i", "subject": "post:id:9", "value": 90, "created_at": 101, "scopeRank": 2, "labels": ["accurate"] },
+      { "pubkey": "@b", "kind": 32014, "subjectType": "i", "subject": "post:id:9", "value": 10, "created_at": 102, "scopeRank": 2 }
+    ],
+    "queries": [
+      {
+        "type": "lookup-incoming",
+        "input": { "keys": ["i:post:id:9"], "kinds": [32014], "withTotals": true },
+        "expect": { "items": [{ "author": "@b", "score": 10 }, { "author": "@a", "score": 90 }], "totals": { "ratings": 2 } }
+      },
+      {
+        "type": "lookup-incoming",
+        "input": { "keys": ["i:post:id:9"], "kinds": [32014], "labels": ["accurate"] },
+        "expect": { "items": [{ "author": "@a" }] }
+      }
+    ]
+  },
+  {
+    "id": "neighborhood-center",
+    "tags": ["neighborhood"],
+    "records": [
+      { "pubkey": "@a", "subject": "@b", "context": "identity", "value": 1, "created_at": 101 },
+      { "pubkey": "@b", "subject": "@c", "context": "identity", "value": -1, "created_at": 102 },
+      { "pubkey": "@b", "subjectType": "i", "subject": "user:id:5", "context": "identity", "value": 1, "created_at": 103 }
+    ],
+    "queries": [
+      {
+        "type": "neighborhood",
+        "input": { "centerId": "p:@b" },
+        "expect": { "truncated": false,
+          "nodes": { "p:@b": { "depth": 0, "kind": "pubkey" }, "p:@a": { "depth": 1 }, "p:@c": { "depth": 1 }, "i:user:id:5": { "depth": 1, "kind": "twitter_id" } } }
+      },
+      {
+        "type": "neighborhood",
+        "input": { "centerId": "p:@b", "direction": "in" },
+        "expect": { "nodes": { "p:@b": { "depth": 0 }, "p:@a": { "depth": 1 } } }
+      },
+      {
+        "type": "neighborhood",
+        "input": { "centerId": "p:@b", "limit": 1 },
+        "expect": { "truncated": true, "truncatedReasons": ["neighborhoodLimit"] }
+      }
+    ]
+  },
+  {
+    "id": "frontier-with-lenient-bind",
+    "tags": ["frontier", "bind"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@b", "context": "identity", "value": 1, "id": "@f1" },
+      { "pubkey": "@b", "subject": "@c", "context": "", "value": 1, "id": "@f2" },
+      { "pubkey": "@c", "subjectType": "i", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@p", "id": "@f3" },
+      { "pubkey": "@b", "subject": "@x", "context": "identity", "value": -1, "id": "@f4" }
+    ],
+    "queries": [
+      {
+        "type": "frontier",
+        "input": { "roots": ["@alice"], "maxDepth": 4 },
+        "expect": { "authors": [
+          { "pubkey": "@alice", "depth": 0 },
+          { "pubkey": "@b", "depth": 1, "via": "@f1" },
+          { "pubkey": "@c", "depth": 2, "via": "@f2" },
+          { "pubkey": "@p", "depth": 3, "via": "@f3" }
+        ], "reasons": [] }
+      },
+      {
+        "type": "frontier",
+        "input": { "roots": ["@alice"], "maxDepth": 2 },
+        "expect": { "authors": [{ "pubkey": "@alice" }, { "pubkey": "@b" }, { "pubkey": "@c" }], "reasons": ["maxDepth"] }
+      },
+      {
+        "type": "frontier",
+        "input": { "roots": ["@alice"], "maxDepth": 4, "maxTotalAuthors": 2 },
+        "expect": { "authors": [{ "pubkey": "@alice" }, { "pubkey": "@b" }], "reasons": ["maxTotalAuthors"] }
+      }
+    ]
+  }
+]

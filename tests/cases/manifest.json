@@ -1,0 +1,14 @@
+{
+  "corpus": "dtp-wot-corpus/1",
+  "model": "dtp-wot/1",
+  "description": "Global Server local cases in the TrustGraph corpus format (conformance.md). Local extensions: record defaults, op `delete` (NIP-09), trust input budgets `maxReachedNodes` / `maxWalkRecords`, protocol error codes of dtp-model.",
+  "cases": [
+    "model/walk.json",
+    "model/bind.json",
+    "model/rating.json",
+    "model/lookup.json",
+    "model/guardrails.json",
+    "model/nip09.json",
+    "protocol/protocol-cases.json"
+  ]
+}

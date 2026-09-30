@@ -1,0 +1,131 @@
+[
+  {
+    "id": "rating-nearest-degree-mean",
+    "tags": ["rating"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@b", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@c", "context": "identity", "value": 1 },
+      { "id": "@r-b", "pubkey": "@b", "kind": 32014, "subjectType": "i", "subject": "post:id:7", "value": 80, "scopeRank": 2, "labels": ["accurate"], "content": "solid" },
+      { "id": "@r-c", "pubkey": "@c", "kind": 32014, "subjectType": "i", "subject": "post:id:7", "value": 45.5, "scopeRank": 2 },
+      { "pubkey": "@b", "subject": "@d", "context": "identity", "value": 1 },
+      { "pubkey": "@d", "kind": 32014, "subjectType": "i", "subject": "post:id:7", "value": 5, "scopeRank": 2 }
+    ],
+    "queries": [
+      {
+        "type": "rating",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "post:id:7" } },
+        "expect": { "degree": 2, "claimCount": 2, "averageScore": 62.75,
+                    "claims": [
+                      { "author": "@c", "score": 45.5, "distance": 1, "labels": [], "content": "" },
+                      { "author": "@b", "score": 80, "distance": 1, "labels": ["accurate"], "content": "solid" }
+                    ] }
+      },
+      {
+        "type": "rating",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "post:id:7" }, "labels": ["accurate"] },
+        "expect": { "degree": 2, "claimCount": 1, "averageScore": 80 }
+      },
+      {
+        "type": "rating",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "post:id:7" }, "labels": ["nope"] },
+        "expect": { "degree": 0, "claimCount": 0, "averageScore": null, "claims": [], "sourceEventIds": [] }
+      },
+      {
+        "type": "rating",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "post:id:7" }, "format": "path" },
+        "expect": { "degree": 2, "ratingEdges": [{ "eventId": "@r-c", "value": -1, "depth": 2, "from": "p:@c", "to": "i:post:id:7" }, { "eventId": "@r-b", "value": 1, "depth": 2, "from": "p:@b" }],
+                    "pathView": { "nodes": [
+                      { "subject": { "type": "i", "value": "post:id:7" }, "depth": 2, "kind": "post" },
+                      { "subject": { "type": "p", "value": "@c" }, "depth": 1 },
+                      { "subject": { "type": "p", "value": "@b" }, "depth": 1 },
+                      { "subject": { "type": "p", "value": "@alice" }, "depth": 0 }
+                    ] } }
+      }
+    ]
+  },
+  {
+    "id": "rating-label-filter-does-not-continue",
+    "tags": ["rating", "labels"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@b", "context": "identity", "value": 1 },
+      { "pubkey": "@b", "kind": 32014, "subjectType": "i", "subject": "post:id:7", "value": 80, "scopeRank": 2 },
+      { "pubkey": "@b", "subject": "@d", "context": "identity", "value": 1 },
+      { "pubkey": "@d", "kind": 32014, "subjectType": "i", "subject": "post:id:7", "value": 60, "scopeRank": 2, "labels": ["accurate"] }
+    ],
+    "queries": [
+      {
+        "type": "rating",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "post:id:7" }, "labels": ["accurate"] },
+        "expect": { "degree": 0, "claimCount": 0, "averageScore": null }
+      }
+    ]
+  },
+  {
+    "id": "rating-own-and-zero-score",
+    "tags": ["rating"],
+    "records": [
+      { "pubkey": "@alice", "kind": 32014, "subjectType": "i", "subject": "post:id:8", "value": 10, "scopeRank": 2 },
+      { "pubkey": "@alice", "subject": "@b", "context": "identity", "value": 1 },
+      { "pubkey": "@b", "kind": 32014, "subjectType": "i", "subject": "post:id:9", "value": 0, "scopeRank": 2 }
+    ],
+    "queries": [
+      {
+        "type": "rating",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "post:id:8" } },
+        "expect": { "degree": 1, "claimCount": 1, "averageScore": 10, "own": { "author": "@alice", "score": 10, "distance": 0 } }
+      },
+      {
+        "type": "rating",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "post:id:9" } },
+        "expect": { "degree": 2, "claimCount": 1, "averageScore": 0 }
+      }
+    ]
+  },
+  {
+    "id": "rating-hop-threshold-is-one",
+    "tags": ["rating", "threshold"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@a1", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@a2", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@a3", "context": "identity", "value": 1 },
+      { "pubkey": "@a1", "subject": "@d", "context": "identity", "value": 1 },
+      { "pubkey": "@a2", "subject": "@d", "context": "identity", "value": -1 },
+      { "pubkey": "@a3", "subject": "@d", "context": "identity", "value": -1 },
+      { "pubkey": "@d", "kind": 32014, "subjectType": "i", "subject": "post:id:5", "value": 70, "scopeRank": 2 },
+      { "pubkey": "@d", "subject": "@e", "context": "identity", "value": 1 }
+    ],
+    "queries": [
+      {
+        "type": "rating",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "post:id:5" }, "followTrustThreshold": 75 },
+        "expect": { "degree": 3, "claimCount": 1, "followTrustThreshold": 75 }
+      },
+      {
+        "type": "trust",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@e" }, "context": "identity" },
+        "expect": { "connected": false }
+      }
+    ]
+  },
+  {
+    "id": "rating-context-exact-only",
+    "tags": ["rating", "context", "gap:G1"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@b", "context": "identity", "value": 1 },
+      { "pubkey": "@b", "kind": 32014, "subjectType": "i", "subject": "post:id:7", "value": 80, "scopeRank": 2, "context": "" },
+      { "pubkey": "@b", "kind": 32014, "subjectType": "i", "subject": "post:id:7", "value": 20, "scopeRank": 2, "context": "security" }
+    ],
+    "queries": [
+      {
+        "type": "rating",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "post:id:7" }, "context": "security:access" },
+        "expectModel": { "degree": 0, "claimCount": 0 }
+      },
+      {
+        "type": "rating",
+        "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "post:id:7" }, "context": "security" },
+        "expectModel": { "degree": 2, "claimCount": 1, "averageScore": 20 }
+      }
+    ]
+  }
+]

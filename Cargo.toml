@@ -18,7 +18,7 @@ version = "0.1.0"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/DigitalTrustProtocol/GlobalServer"
-rust-version = "1.85"
+rust-version = "1.88"
 
 [workspace.dependencies]
 dtp-model = { path = "crates/dtp-model" }

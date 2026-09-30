@@ -1,0 +1,277 @@
+[
+  {
+    "id": "bind-01-own-bio-claimed",
+    "tags": ["bind", "own-evidence"],
+    "records": [
+      { "pubkey": "@alice", "subject": "user:id:42", "context": "identity", "value": 1 },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 }
+    ],
+    "claims": [{ "pubkey": "@p", "twitterId": "42" }],
+    "ownEvidence": [{ "root": "@alice", "iKey": "user:id:42", "pubkey": "@p", "source": "bio" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 1, "binding": { "pubkey": "@p", "source": "own-bio", "confirmed": true } },
+                    "strict": { "degree": 1, "binding": { "pubkey": "@p", "source": "own-bio", "confirmed": true } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 2 }, "strict": { "degree": 2 } } }
+    ]
+  },
+  {
+    "id": "bind-02-own-bio-no-claim",
+    "tags": ["bind", "own-evidence"],
+    "records": [
+      { "pubkey": "@alice", "subject": "user:id:42", "context": "identity", "value": 1 },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 }
+    ],
+    "ownEvidence": [{ "root": "@alice", "iKey": "user:id:42", "pubkey": "@p", "source": "bio" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "binding": { "pubkey": "@p", "source": "own-bio", "confirmed": false } },
+                    "strict": { "degree": 1, "binding": { "source": "none", "confirmed": false, "cutCandidate": "@p", "cutReason": "no-claim" } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 2 }, "strict": { "connected": false } } }
+    ]
+  },
+  {
+    "id": "bind-03-own-bio-outranks-friends-hint",
+    "tags": ["bind", "own-evidence"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1 },
+      { "pubkey": "@carol", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@q" },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 },
+      { "pubkey": "@q", "subject": "@zed2", "context": "identity", "value": 1 }
+    ],
+    "claims": [{ "pubkey": "@q", "twitterId": "42" }],
+    "ownEvidence": [{ "root": "@alice", "iKey": "user:id:42", "pubkey": "@p", "source": "bio" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "binding": { "pubkey": "@p", "source": "own-bio" } },
+                    "strict": { "binding": { "source": "none", "cutCandidate": "@p", "cutReason": "no-claim" } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 3 }, "strict": { "connected": false } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed2" }, "context": "identity" },
+        "expect": { "lenient": { "connected": false }, "strict": { "connected": false } } }
+    ]
+  },
+  {
+    "id": "bind-04-own-statement-claimed",
+    "tags": ["bind"],
+    "records": [
+      { "pubkey": "@alice", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@p" },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 }
+    ],
+    "claims": [{ "pubkey": "@p", "twitterId": "42" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 1, "binding": { "pubkey": "@p", "source": "own-statement", "confirmed": true, "witnessDegree": 1 } },
+                    "strict": { "degree": 1, "binding": { "pubkey": "@p", "source": "own-statement", "confirmed": true } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 2 }, "strict": { "degree": 2 } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@p" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 1, "statements": [{ "subject": { "type": "p", "value": "@p" } }] },
+                    "strict": { "degree": 1 } } }
+    ]
+  },
+  {
+    "id": "bind-05-own-statement-no-claim",
+    "tags": ["bind"],
+    "records": [
+      { "pubkey": "@alice", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@p" },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 }
+    ],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "binding": { "pubkey": "@p", "source": "own-statement", "confirmed": false } },
+                    "strict": { "degree": 1, "binding": { "source": "none", "cutCandidate": "@p", "cutReason": "no-claim" } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 2 }, "strict": { "connected": false } } }
+    ]
+  },
+  {
+    "id": "bind-06-nearest-witness-claimed",
+    "tags": ["bind"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1 },
+      { "pubkey": "@carol", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@p" },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 }
+    ],
+    "claims": [{ "pubkey": "@p", "twitterId": "42" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 2, "binding": { "pubkey": "@p", "source": "witness", "confirmed": true, "witnessDegree": 2 } },
+                    "strict": { "degree": 2, "binding": { "pubkey": "@p", "source": "witness", "confirmed": true, "witnessDegree": 2 } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 3 }, "strict": { "degree": 3 } } }
+    ]
+  },
+  {
+    "id": "bind-07-nearest-unclaimed-vs-farther-claimed",
+    "tags": ["bind"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1 },
+      { "pubkey": "@carol", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@p" },
+      { "pubkey": "@alice", "subject": "@dave", "context": "identity", "value": 1 },
+      { "pubkey": "@dave", "subject": "@erin", "context": "identity", "value": 1 },
+      { "pubkey": "@erin", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@q" },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 },
+      { "pubkey": "@q", "subject": "@zed2", "context": "identity", "value": 1 }
+    ],
+    "claims": [{ "pubkey": "@q", "twitterId": "42" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 2, "binding": { "pubkey": "@p", "source": "witness", "confirmed": false } },
+                    "strict": { "degree": 2, "binding": { "source": "none", "cutCandidate": "@p", "cutReason": "no-claim" } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 3 }, "strict": { "connected": false } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed2" }, "context": "identity" },
+        "expect": { "lenient": { "connected": false }, "strict": { "degree": 4 } } }
+    ]
+  },
+  {
+    "id": "bind-08-same-level-trust-count-rank",
+    "tags": ["bind"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@a1", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@a2", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@a3", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@a4", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@a5", "context": "identity", "value": 1 },
+      { "pubkey": "@a1", "subject": "@w1", "context": "identity", "value": 1 },
+      { "pubkey": "@a2", "subject": "@w1", "context": "identity", "value": 1 },
+      { "pubkey": "@a3", "subject": "@w1", "context": "identity", "value": 1 },
+      { "pubkey": "@a4", "subject": "@w1", "context": "identity", "value": 1 },
+      { "pubkey": "@a5", "subject": "@w1", "context": "identity", "value": 1 },
+      { "pubkey": "@a1", "subject": "@w2", "context": "identity", "value": 1 },
+      { "pubkey": "@a2", "subject": "@w2", "context": "identity", "value": 1 },
+      { "pubkey": "@a3", "subject": "@w2", "context": "identity", "value": 1 },
+      { "pubkey": "@w1", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@p" },
+      { "pubkey": "@w2", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@q" },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 },
+      { "pubkey": "@q", "subject": "@zed2", "context": "identity", "value": 1 }
+    ],
+    "claims": [{ "pubkey": "@q", "twitterId": "42" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 4 }, "strict": { "connected": false } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed2" }, "context": "identity" },
+        "expect": { "lenient": { "connected": false }, "strict": { "degree": 4 } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 3, "trust": 2, "binding": { "pubkey": "@p", "witnessDegree": 3 } },
+                    "strict": { "degree": 3, "trust": 2, "binding": { "pubkey": "@q", "confirmed": true } } } }
+    ]
+  },
+  {
+    "id": "bind-09-false-hint",
+    "tags": ["bind"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1 },
+      { "pubkey": "@carol", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@p" },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 }
+    ],
+    "claims": [{ "pubkey": "@p", "twitterId": "99" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "binding": { "pubkey": "@p", "confirmed": false } },
+                    "strict": { "binding": { "source": "none", "cutCandidate": "@p", "cutReason": "false-hint" } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 3 }, "strict": { "connected": false } } }
+    ]
+  },
+  {
+    "id": "bind-10-outside-witness-never-binds",
+    "tags": ["bind"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1 },
+      { "pubkey": "@carol", "subject": "user:id:42", "context": "identity", "value": 1 },
+      { "pubkey": "@mallory", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@p" },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 }
+    ],
+    "claims": [{ "pubkey": "@p", "twitterId": "42" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 2, "binding": { "source": "none", "confirmed": false } },
+                    "strict": { "degree": 2, "binding": { "source": "none", "confirmed": false } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "connected": false }, "strict": { "connected": false } } }
+    ]
+  },
+  {
+    "id": "bind-11-claim-alone-never-binds",
+    "tags": ["bind"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1 },
+      { "pubkey": "@carol", "subject": "user:id:42", "context": "identity", "value": 1 },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 }
+    ],
+    "claims": [{ "pubkey": "@p", "twitterId": "42" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "connected": false }, "strict": { "connected": false } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "binding": { "source": "none" } }, "strict": { "binding": { "source": "none" } } } }
+    ]
+  },
+  {
+    "id": "bind-12-not-witnesses",
+    "tags": ["bind"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@dora", "context": "identity", "value": 1 },
+      { "pubkey": "@alice", "subject": "@eve", "context": "identity", "value": 1 },
+      { "pubkey": "@carol", "subject": "user:id:42", "context": "identity", "value": 0, "hintPubkey": "@p" },
+      { "pubkey": "@dora", "subject": "user:id:42", "context": "identity", "value": 1, "scopeRank": 1 },
+      { "pubkey": "@eve", "subject": "user:id:42", "context": "identity", "value": -1, "hintPubkey": "@p" },
+      { "pubkey": "@p", "subject": "user:id:43", "context": "identity", "value": 1, "hintPubkey": "@p" },
+      { "pubkey": "@alice", "subject": "@p", "context": "identity", "value": 1 },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 },
+      { "pubkey": "@z1", "subject": "@zed3", "context": "identity", "value": 1 }
+    ],
+    "claims": [{ "pubkey": "@p", "twitterId": "42" }, { "pubkey": "@p", "twitterId": "43" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 2, "trust": 1, "distrust": 1, "neutral": 1, "binding": { "source": "none" } },
+                    "strict": { "degree": 2, "binding": { "source": "none" } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:43" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 2, "binding": { "source": "none" } }, "strict": { "binding": { "source": "none" } } } }
+    ]
+  },
+  {
+    "id": "bind-13-unwitnessed-claimant-is-never-a-candidate",
+    "tags": ["bind"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@carol", "context": "identity", "value": 1 },
+      { "pubkey": "@carol", "subject": "user:id:42", "context": "identity", "value": 1, "hintPubkey": "@p" },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 },
+      { "pubkey": "@q", "subject": "@zed2", "context": "identity", "value": 1 }
+    ],
+    "claims": [{ "pubkey": "@q", "twitterId": "42" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "binding": { "pubkey": "@p", "confirmed": false } },
+                    "strict": { "binding": { "source": "none", "cutCandidate": "@p", "cutReason": "no-claim" } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed2" }, "context": "identity" },
+        "expect": { "lenient": { "connected": false }, "strict": { "connected": false } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 3 }, "strict": { "connected": false } } }
+    ]
+  },
+  {
+    "id": "bind-attest-witness-without-hop",
+    "tags": ["bind", "context"],
+    "records": [
+      { "pubkey": "@alice", "subject": "@verifier", "context": "identity", "value": 1 },
+      { "pubkey": "@verifier", "subject": "user:id:42", "context": "identity:attest", "value": 1, "hintPubkey": "@p" },
+      { "pubkey": "@alice", "subject": "@bob", "context": "identity", "value": 1 },
+      { "pubkey": "@bob", "subject": "user:id:42", "context": "identity", "value": 1 },
+      { "pubkey": "@p", "subject": "@zed", "context": "identity", "value": 1 }
+    ],
+    "claims": [{ "pubkey": "@p", "twitterId": "42" }],
+    "queries": [
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "i", "value": "user:id:42" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 2, "trust": 1, "statements": [{ "author": "@bob" }], "binding": { "pubkey": "@p", "source": "witness" } },
+                    "strict": { "degree": 2, "trust": 1, "binding": { "pubkey": "@p", "confirmed": true } } } },
+      { "type": "trust", "input": { "rootPubkey": "@alice", "subject": { "type": "p", "value": "@zed" }, "context": "identity" },
+        "expect": { "lenient": { "degree": 3 }, "strict": { "degree": 3 } } }
+    ]
+  }
+]
