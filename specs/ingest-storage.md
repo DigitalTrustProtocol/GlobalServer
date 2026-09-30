@@ -135,8 +135,12 @@ is also requested with a `want` push; results meanwhile carry
 
 ## Event store
 
-RocksDB behind the `EventStore` trait (decision GS-D1: RocksDB vs a
-pure-Rust engine such as `redb`). Column families:
+RocksDB behind the `EventStore` trait (decision GS-D1, decided: RocksDB via
+the `rocksdb` crate). The store is the directory `<data_dir>/events`. Build
+flags: LZ4 block compression only (no snappy / zlib / bzip2 / zstd), no
+jemalloc; every ingest batch is one atomic `WriteBatch` written with
+`sync = true`, so an `OK` is never sent for a batch that is not durable.
+Column families:
 
 | Column family | Key | Value |
 | --- | --- | --- |
@@ -149,9 +153,12 @@ pure-Rust engine such as `redb`). Column families:
 | `reach` | author | Class, last reached time, slot count |
 | `meta` | string | Schema version, flushed sequence, watermarks |
 
-> **v1 implementation note (PLAN.md D-store).** The first build uses `redb`
-> (GS-D1 still open) with tables `slots`, `by_id`, `by_author`, `log`,
-> `tombstones`, `meta`. Kind `10011` winners live in `slots` under
+> **v1 implementation note (PLAN.md D-store).** v1 creates the column
+> families `slots`, `by_id`, `by_author`, `log`, `tombstones`, `meta`. `slots`
+> values are JSON `{ event?, floor?, seq }` with a `u32` kind in the key
+> (not yet the compact encoding above), `tombstones` maps a deleted id to
+> the deleter pubkey, and `meta` holds `schema` and the `seq` counter
+> (`u64` BE). Kind `10011` winners live in `slots` under
 > `10011 ‖ author ‖ ""` (the `replaceable` family); the `claims` and `reach`
 > families are not stored yet: claims are rebuilt from the replaceable
 > winners at start-up, and retention classes are not built. A kind `5` that

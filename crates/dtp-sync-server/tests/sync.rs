@@ -144,7 +144,7 @@ async fn backfill_and_live_reach_the_resolver() {
         pubkey: sync_keys.pubkey().into(),
         roles: vec!["write".into()],
     }];
-    let store = dtp_store::RedbStore::open(&dir.path().join("events.redb")).unwrap();
+    let store = dtp_store::RocksDbStore::open(&dir.path().join("events")).unwrap();
     let resolver = dtp_api::start(cfg, Arc::new(store), Keys::from_seed("server"))
         .await
         .unwrap();
@@ -204,7 +204,7 @@ async fn unauthorized_writer_is_refused() {
     let mut cfg = Config::default();
     cfg.server.listen = "127.0.0.1:0".into();
     cfg.admin.listen = Some("127.0.0.1:0".into());
-    let store = dtp_store::RedbStore::open(&dir.path().join("events.redb")).unwrap();
+    let store = dtp_store::RocksDbStore::open(&dir.path().join("events")).unwrap();
     let resolver = dtp_api::start(cfg, Arc::new(store), Keys::from_seed("server"))
         .await
         .unwrap();

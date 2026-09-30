@@ -12,6 +12,7 @@ open.
 | Session | Delivered |
 | --- | --- |
 | 2026-09-30 (1) | Repository, toolchain, workspace and CI; G0 (model, graph, exact walk with binds and guardrails, lookups, conformance runner); G1/G2 server slice (redb store, WebSocket endpoint with every DTP operation, NIP-42/43, admin telemetry, `dtp-global` binary); `dtp-sync` basic; G3 root-field fast path for batches |
+| 2026-10-01 (3) | GS-D1 decided: event store moved from redb to RocksDB (`RocksDbStore`); MSVC toolchain pin (`rust-toolchain.toml`); CI installs the RocksDB build deps |
 | 2026-09-30 (2) | Session-suite runner (`dtp-conformance` `session` module + `tests/sessions.rs`, real `dtp-global` over WebSocket); gap convention (`expectModel` only, "gap fixed"); protocol and neighborhood fixes found by the sessions (see [Session suite divergences](#session-suite-divergences)); Node interop with `@dtp/resolver-client` (`interop/resolver-client.mjs`) |
 
 ### Results at the end of session 2
@@ -40,10 +41,10 @@ open.
 
 | ID | Decision | Rationale |
 | --- | --- | --- |
-| D-toolchain | Rust stable 1.98 on `x86_64-pc-windows-gnu` (rustup, user level) on the dev machine; CI on Ubuntu | MSVC build tools are not installed and must not be. The GNU toolchain's `dlltool` cannot run (no assembler), so `llvm-ar` from the `llvm-tools` component is used as `dlltool` (see AGENTS.md). The code is target-independent. |
-| D-tokio-features | Explicit tokio features, never `full` / `parking_lot` | With LLVM-generated raw-dylib import libraries on `windows-gnu`, `parking_lot_core` crashes the process before `main`. No functional impact. |
+| D-toolchain | `rust-toolchain.toml` pins `stable-x86_64-pc-windows-msvc` (1.98.1, clippy, rustfmt) for Windows dev; Linux CI overrides with `RUSTUP_TOOLCHAIN=stable` | RocksDB needs a C++ compiler (VS 2022 `cl.exe`); bindgen needs libclang (user-level `pip install --user libclang`, `LIBCLANG_PATH`). Replaces the session-1 `windows-gnu` + `llvm-dlltool` workaround. |
+| D-tokio-features | Explicit tokio features, never `full` / `parking_lot` | `parking_lot_core` crashed before `main` on the former `windows-gnu` setup; kept off, no functional impact. |
 | D-crypto | `k256` (pure Rust) for BIP-340 verify and sign; `sha2` for ids and `d` | No C compiler needed (`secp256k1` crate needs one). Slower verify than libsecp256k1; revisit behind a feature flag with the G3 ingest benchmarks. |
-| D-store (GS-D1, provisional) | `redb` behind the `EventStore` trait | Pure Rust, single file, ACID. RocksDB stays the spec's recommendation; the trait keeps the switch local to `dtp-store`. GS-D1 stays open until the G3 ingest benchmarks. Recorded in specs/ingest-storage.md. |
+| D-store (GS-D1, **decided**) | RocksDB (`rocksdb` 0.25 / RocksDB 11.8.1) behind the `EventStore` trait as `RocksDbStore`, directory `<data_dir>/events`; column families `slots`, `by_id`, `by_author`, `log`, `tombstones`, `meta` with the former redb key/value bytes; LZ4 only, no jemalloc; one synced `WriteBatch` per ingest batch (a mutex serializes batches; reads inside a batch see its pending writes); reads use a RocksDB snapshot; winner count kept in memory (counted from `log` at open) | Owner decision 2026-10-01. No deployed v1 data, so no migration from `events.redb`. Recorded in specs/ingest-storage.md. |
 | D-mmap | Base CSR is `Vec<u32>` in the final on-disk layout; memory-mapped segment files deferred | Segment files will hold exactly these arrays (dense offsets, bucket directories, packed entries, parallel edge ids). |
 | D-tiers | Two tiers now: immutable base + persistent RAM delta (`im::HashMap<NodeId, Arc<Run>>`), dead bits over base edges, `compact()` = base rebuild (also run after replay and when the delta passes 1 M entries) | Proves tier and dead-bit semantics (tested: reads identical before/after compaction) before files exist. |
 | D-edge-ids | Edge ids are allocation order, not renumbered by subject at rebuild | Slots reference edges; renumbering comes with the store-backed rebuild. |
@@ -104,7 +105,7 @@ open.
 
 ### G1 — store, ingest endpoint, `dtp-sync`
 
-- [x] `dtp-store`: `EventStore` trait + redb (`slots` incl. 10011 winners, `by_id`, `by_author`, `log`, `tombstones`, `meta`; floors in slot values)
+- [x] `dtp-store`: `EventStore` trait + RocksDB (`slots` incl. 10011 winners, `by_id`, `by_author`, `log`, `tombstones`, `meta`; floors in slot values)
 - [x] Replay of the event store into the graph at start-up (floors, tombstones, winners; then `compact()`); tested across a restart
 - [x] WebSocket endpoint: NIP-01 framing, `EVENT` pipeline (shape, kind, dedup before signature work, id + signature on the blocking pool, NIP rules, scope profile, slot reduction, store write, epoch publish) with `OK` prefixes, per-connection pending-`OK` window with TCP backpressure (reads pause)
 - [x] NIP-42 `AUTH` (kind, ±10 min, challenge, relay URL), `auth.reads` / `auth.writes` with `auth-required:` / `restricted:`
@@ -232,7 +233,8 @@ the final text. The four recorded ambiguities above are new.
 
 ## Blockers and open decisions
 
-- **GS-D1** (RocksDB vs redb): redb in use; decide after G3 ingest benchmarks.
+- **GS-D1**: decided 2026-10-01 — RocksDB (D-store). The G3 ingest
+  benchmarks still need to be run against it.
 - **GS-D7** (mmap vs buffer pool): not started; needs the segment files.
 - **GS-D5** (default binding mode): `lenient` (config `model.binding_mode`,
   applied under session defaults together with the threshold knobs).

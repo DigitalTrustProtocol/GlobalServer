@@ -41,7 +41,10 @@ bech32 = "0.11"
 im = "15"
 arc-swap = "1"
 rayon = "1"
-redb = "2"
+# C++ RocksDB built from source by librocksdb-sys (cc, no CMake). LZ4 only:
+# no snappy / zlib / bzip2 / zstd and no jemalloc, so no extra C deps.
+# bindgen-runtime loads libclang at build time (LIBCLANG_PATH, see AGENTS.md).
+rocksdb = { version = "0.25", default-features = false, features = ["lz4", "bindgen-runtime"] }
 # Not "full": its parking_lot feature crashes at load on x86_64-pc-windows-gnu
 # with LLVM-generated raw-dylib import libraries (see AGENTS.md).
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "sync", "time", "io-util", "signal"] }

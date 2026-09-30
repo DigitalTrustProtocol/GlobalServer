@@ -8,12 +8,19 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: -D warnings
+  # rust-toolchain.toml pins the Windows MSVC toolchain for dev machines;
+  # Linux uses the default stable toolchain.
+  RUSTUP_TOOLCHAIN: stable
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # librocksdb-sys compiles RocksDB (C++20) with cc and runs bindgen,
+      # which loads libclang. No CMake needed.
+      - name: native build deps
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends g++ clang libclang-dev
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt

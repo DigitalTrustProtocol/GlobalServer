@@ -16,7 +16,7 @@ use dtp_model::statement::StatementBuilder;
 use dtp_model::{
     Event, KIND_AUTH, KIND_DELETION, KIND_IDENTITY, Keys, Subject, SubjectType, encode_npub,
 };
-use dtp_store::RedbStore;
+use dtp_store::RocksDbStore;
 
 const T: u64 = 1_700_000_000;
 
@@ -44,7 +44,7 @@ fn config(reads: Access) -> Config {
 }
 
 async fn boot(dir: &std::path::Path, cfg: Config) -> ServerHandle {
-    let store = RedbStore::open(&dir.join("events.redb")).unwrap();
+    let store = RocksDbStore::open(&dir.join("events")).unwrap();
     start(cfg, Arc::new(store), Keys::from_seed("server"))
         .await
         .unwrap()

@@ -95,7 +95,7 @@ one Sync Server can feed many resolver replicas.
 
 | ID | Decision |
 | --- | --- |
-| GS-D1 | Event store: RocksDB (recommended) vs a pure-Rust engine (`redb`) |
+| GS-D1 | **Decided 2026-10-01:** event store is RocksDB (`rocksdb` crate, LZ4, no jemalloc); see [specs/ingest-storage.md § Event store](specs/ingest-storage.md#event-store) |
 | GS-D2 | `rust-nostr` relay pool vs a minimal own client (Sync Server) |
 | GS-D3 | Whether to run a verifier service (X OAuth, from `nip05-Server`) that publishes `c=identity:attest` witnesses, and whether to recommend it to users |
 | GS-D4 | Operator and public endpoint domain; hosting |

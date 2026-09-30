@@ -20,7 +20,7 @@ use dtp_conformance::session::{
     Features, Session, SessionReport, StepOutcome, judge, load_sessions, plan_step, wants_push,
 };
 use dtp_model::Keys;
-use dtp_store::RedbStore;
+use dtp_store::RocksDbStore;
 
 const STEP_TIMEOUT: Duration = Duration::from_secs(5);
 
@@ -137,7 +137,7 @@ async fn run_session(session: &Session) -> SessionReport {
         }
     };
     let dir = tempfile::tempdir().unwrap();
-    let store = RedbStore::open(&dir.path().join("events.redb")).unwrap();
+    let store = RocksDbStore::open(&dir.path().join("events")).unwrap();
     let server = start(cfg, Arc::new(store), Keys::from_seed("server"))
         .await
         .unwrap();

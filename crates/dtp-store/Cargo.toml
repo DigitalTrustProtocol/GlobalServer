@@ -1,6 +1,6 @@
 [package]
 name = "dtp-store"
-description = "Event store: EventStore trait and the redb implementation (slots, by_id, by_author, log, tombstones, meta)"
+description = "Event store: EventStore trait and the RocksDB implementation (column families slots, by_id, by_author, log, tombstones, meta)"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -8,7 +8,7 @@ rust-version.workspace = true
 
 [dependencies]
 dtp-model.workspace = true
-redb.workspace = true
+rocksdb.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 hex.workspace = true

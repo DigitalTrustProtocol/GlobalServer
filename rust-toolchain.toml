@@ -1,0 +1,5 @@
+# Windows dev machines build with MSVC (RocksDB needs the MSVC C++ toolchain).
+# Linux CI overrides this with RUSTUP_TOOLCHAIN=stable (see ci.yml).
+[toolchain]
+channel = "stable-x86_64-pc-windows-msvc"
+components = ["clippy", "rustfmt"]

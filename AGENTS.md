@@ -6,9 +6,10 @@ changing code.
 
 ## Stack
 
-- Rust 2024, stable toolchain. Pure-Rust crates only (builds with the GNU or
-  MSVC target, no C compiler): `k256` (BIP-340), `sha2`, `redb`, `tokio`,
-  `axum`, `tokio-tungstenite`, `serde_json`, `im`, `arc-swap`, `rayon`.
+- Rust 2024, stable toolchain. `rocksdb` (C++ RocksDB, event store) is the
+  one native dependency; everything else is pure Rust: `k256` (BIP-340),
+  `sha2`, `tokio`, `axum`, `tokio-tungstenite`, `serde_json`, `im`,
+  `arc-swap`, `rayon`.
 - Workspace crates under `crates/` (see
   [specs/architecture.md § Crates](specs/architecture.md#crates)).
 
@@ -33,23 +34,26 @@ steps gate on `requires` / `otherwise` like the TS runner.
 All three checks must be green before every commit. CI runs the same on
 Ubuntu (`.github/workflows/ci.yml`).
 
-### Windows with the GNU toolchain (no MSVC build tools)
+### Building on Windows (MSVC pin)
 
-Newer `windows-sys` / `getrandom` link through `raw-dylib`, which needs a
-`dlltool`. The GNU `dlltool` shipped with `rust-mingw` cannot run (no
-assembler); LLVM's works:
+`rust-toolchain.toml` pins `stable-x86_64-pc-windows-msvc` with clippy and
+rustfmt; rustup picks it up in this directory whatever the global default
+is. Needs Visual Studio 2022 with the C++ workload (`cl.exe`) — RocksDB is
+compiled by `librocksdb-sys` through `cc` (no CMake) — and libclang for
+bindgen (the crate has no pregenerated bindings). A user-level libclang:
 
 ```powershell
-rustup component add llvm-tools
-$bin = "$env:USERPROFILE\.rustup\toolchains\stable-x86_64-pc-windows-gnu\lib\rustlib\x86_64-pc-windows-gnu\bin"
-New-Item -ItemType Directory -Force "$env:USERPROFILE\.cargo\llvm-dlltool"
-New-Item -ItemType HardLink -Path "$env:USERPROFILE\.cargo\llvm-dlltool\dlltool.exe" -Target "$bin\llvm-ar.exe"
-Copy-Item "$bin\libgcc_s_seh-1.dll","$bin\libwinpthread-1.dll" "$env:USERPROFILE\.cargo\llvm-dlltool"
-$env:Path = "$env:USERPROFILE\.cargo\llvm-dlltool;" + $env:Path   # before running cargo
+rustup toolchain install stable-x86_64-pc-windows-msvc --profile minimal -c clippy,rustfmt
+python -m pip install --user libclang
+$env:LIBCLANG_PATH = "$env:APPDATA\Python\Python312\site-packages\clang\native"   # before cargo
 ```
 
-Do not enable tokio's `parking_lot` feature (or `full`): with these import
-libraries it crashes at process start on `windows-gnu`.
+The first build compiles RocksDB (≈ 4 min). The old GNU `llvm-dlltool`
+PATH workaround is not needed. Linux CI ignores the pin
+(`RUSTUP_TOOLCHAIN=stable`) and installs `g++ clang libclang-dev`.
+
+Keep tokio's `parking_lot` feature (and `full`) off: it crashed at process
+start on the former `windows-gnu` setup.
 
 ## Rules
 

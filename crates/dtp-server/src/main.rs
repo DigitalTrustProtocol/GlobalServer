@@ -17,7 +17,7 @@ use anyhow::{Context, bail};
 use dtp_api::Config;
 use dtp_model::Keys;
 use dtp_protocol::Membership;
-use dtp_store::{EventStore, RedbStore, WriteOp};
+use dtp_store::{EventStore, RocksDbStore, WriteOp};
 
 fn load_config(path: Option<&Path>) -> anyhow::Result<Config> {
     match path {
@@ -69,10 +69,10 @@ fn load_keys(config: &Config) -> anyhow::Result<Keys> {
     Ok(keys)
 }
 
-fn open_store(config: &Config) -> anyhow::Result<RedbStore> {
+fn open_store(config: &Config) -> anyhow::Result<RocksDbStore> {
     let dir = Path::new(&config.storage.data_dir);
     std::fs::create_dir_all(dir).with_context(|| format!("create {}", dir.display()))?;
-    Ok(RedbStore::open(&dir.join("events.redb"))?)
+    Ok(RocksDbStore::open(&dir.join("events"))?)
 }
 
 fn members(config: &Config, args: &[String]) -> anyhow::Result<()> {
