@@ -309,6 +309,90 @@ fn ratings_mean_labels_and_own() {
     assert_eq!(r["own"]["score"], 10);
 }
 
+/// Seeded random graphs: the root field answers exactly like the walk.
+#[test]
+fn field_equals_walk_on_random_graphs() {
+    use crate::field::Field;
+    use crate::results::{from_field, threshold_for, walk_params};
+    let mut state: u64 = 0x5eed;
+    let mut rnd = |n: u64| {
+        state = state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
+        (state >> 33) % n
+    };
+    let limits = Limits::protocol_defaults();
+    let mut compared = 0;
+    for seed in 0..12 {
+        let mut t = G::new();
+        let people: Vec<String> = (0..25).map(|i| format!("s{seed}-p{i}")).collect();
+        for _ in 0..90 {
+            let a = &people[rnd(25) as usize];
+            let value = [1, 1, 1, -1, 0][rnd(5) as usize];
+            let context = ["identity", "", "identity:attest"][rnd(3) as usize];
+            match rnd(4) {
+                0 => {
+                    let hint = (rnd(2) == 0).then(|| people[rnd(25) as usize].clone());
+                    let x = format!("user:id:{}", rnd(6));
+                    t.push_full(a, SubjectType::I, &x, context, value, hint.as_deref(), 2);
+                }
+                1 => t.rate(a, &format!("post:id:{}", rnd(4)), rnd(101) as u32, &[]),
+                _ => t.push(a, &people[rnd(25) as usize], context, value),
+            }
+        }
+        for _ in 0..6 {
+            let p = h(&people[rnd(25) as usize]);
+            t.g.apply_claim_ids(
+                &p,
+                &h(&format!("claim-{seed}-{}", rnd(1000))),
+                1,
+                vec![rnd(6).to_string().into()],
+            );
+        }
+        let subjects: Vec<Value> = people
+            .iter()
+            .map(|p| json!({ "type": "p", "value": h(p) }))
+            .chain((0..6).map(|i| json!({ "type": "i", "value": format!("user:id:{i}") })))
+            .chain((0..4).map(|i| json!({ "type": "i", "value": format!("post:id:{i}") })))
+            .collect();
+        for root in people.iter().take(3) {
+            for mode in ["lenient", "strict"] {
+                for (kind, context) in [
+                    (dtp_model::KIND_TRUST, "identity"),
+                    (dtp_model::KIND_RATING, ""),
+                ] {
+                    let base = json!({ "rootPubkey": h(root), "subject": subjects[0], "context": context, "now": 5000, "bindingMode": mode });
+                    let q0 = ResolveQuery::parse(base.as_object().unwrap(), &limits, 0).unwrap();
+                    let ctx = ExecCtx::new(1, &limits);
+                    let Some(p) = walk_params(&t.g, &q0, &ctx, kind, threshold_for(kind, &q0))
+                    else {
+                        continue;
+                    };
+                    let mut field = Field::build(&t.g, p, &q0.hop_context);
+                    for s in &subjects {
+                        let mut params = base.clone();
+                        params["subject"] = s.clone();
+                        let q =
+                            ResolveQuery::parse(params.as_object().unwrap(), &limits, 0).unwrap();
+                        let walk = if kind == dtp_model::KIND_TRUST {
+                            execute_trust(&t.g, &q, &ctx)
+                        } else {
+                            execute_rating(&t.g, &q, &ctx)
+                        };
+                        let via_field = from_field(&t.g, &q, &ctx, kind, &mut field);
+                        assert_eq!(
+                            walk, via_field,
+                            "seed {seed} root {root} {mode} kind {kind} subject {s}"
+                        );
+                        compared += 1;
+                    }
+                }
+            }
+        }
+    }
+    assert!(compared > 2000);
+}
+
 #[test]
 fn lookup_pages_add_up() {
     let mut t = G::new();

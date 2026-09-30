@@ -6,6 +6,7 @@
 //! - [`lookup`]: incoming / outgoing / counts / batch lookups, neighborhood;
 //! - [`frontier`]: sync frontier and `graph.field`.
 
+pub mod field;
 pub mod frontier;
 pub mod lookup;
 pub mod query;

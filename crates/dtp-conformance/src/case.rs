@@ -601,6 +601,43 @@ fn check_properties(case: &Value, base: &Setup, queries: &[Value], errors: &mut 
                     {
                         continue;
                     }
+                    // Field = walk (resolver-engine.md § Root field).
+                    let params = resolve_params(&input, Some(mode));
+                    if let Ok(rq) = ResolveQuery::parse(&params, &limits, NOW) {
+                        let kind = if qtype == "trust" {
+                            KIND_TRUST
+                        } else {
+                            KIND_RATING
+                        };
+                        let mut fctx = ExecCtx::new(0, &limits);
+                        fctx.own = &base.own;
+                        let threshold = dtp_resolve::results::threshold_for(kind, &rq);
+                        if let Some(p) = dtp_resolve::results::walk_params(
+                            &base.graph,
+                            &rq,
+                            &fctx,
+                            kind,
+                            threshold,
+                        ) {
+                            let mut field =
+                                dtp_resolve::field::Field::build(&base.graph, p, &rq.hop_context);
+                            if !rq.format_path
+                                && field.serves(kind, &rq.context)
+                                && field.truncated().is_none()
+                            {
+                                let via_field = dtp_resolve::results::from_field(
+                                    &base.graph,
+                                    &rq,
+                                    &fctx,
+                                    kind,
+                                    &mut field,
+                                );
+                                if canonicalize(&via_field) != canonicalize(&single) {
+                                    errors.push(format!("query[{qi}]: field != walk ({mode})"));
+                                }
+                            }
+                        }
+                    }
                     let mut shared = resolve_params(&input, Some(mode));
                     let mut item = Map::new();
                     item.insert("key".into(), json!("k"));

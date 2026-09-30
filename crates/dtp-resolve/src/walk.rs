@@ -287,7 +287,17 @@ impl<'g> Walker<'g> {
     /// `bind(R, X, ℓ)` for a bindable X node.
     pub fn bind(&mut self, x: NodeId, level: u8) -> BindOutcome {
         if let Some(done) = self.bound.get(&x) {
-            return done.clone();
+            // A bind is stable from its witness's level on; shallower levels
+            // (asked by root-field hit tests) are decided afresh.
+            let valid_from = done
+                .bind
+                .as_ref()
+                .and_then(|b| b.witness_level)
+                .unwrap_or(0);
+            if level >= valid_from {
+                return done.clone();
+            }
+            return self.compute_bind(x, level);
         }
         let outcome = self.compute_bind(x, level);
         // Bound answers never change at deeper levels; own evidence and own
@@ -454,7 +464,12 @@ impl<'g> Walker<'g> {
 
     /// The subject's node as seen at level ℓ.
     pub fn subject_at(&mut self, level: u8) -> Option<NodeId> {
-        let s = self.p.subject?;
+        self.subject_node_at(self.p.subject, level)
+    }
+
+    /// Any subject's node as seen at level ℓ (`node(resolve(S, ℓ))`).
+    pub fn subject_node_at(&mut self, subject: Option<NodeId>, level: u8) -> Option<NodeId> {
+        let s = subject?;
         if self.g.node(s).is_bindable() {
             Some(self.bind(s, level).bind.map_or(s, |b| b.pubkey))
         } else {
@@ -527,18 +542,34 @@ impl<'g> Walker<'g> {
 
     /// Evidence at degree `level + 1`.
     fn hits_at(&mut self, level: u8) -> (Option<NodeId>, Vec<Hit>) {
-        let Some(ns) = self.subject_at(level) else {
+        let buckets = self.p.score_buckets.clone();
+        self.hits_for(self.p.subject, self.p.kind, &buckets, level)
+    }
+
+    /// Evidence about any subject at degree `level + 1`, from the levels
+    /// built so far (the root-field hit test uses this too).
+    pub fn hits_for(
+        &mut self,
+        subject: Option<NodeId>,
+        kind: u32,
+        buckets: &[BucketId],
+        level: u8,
+    ) -> (Option<NodeId>, Vec<Hit>) {
+        let Some(ns) = self.subject_node_at(subject, level) else {
             return (None, Vec::new());
         };
-        let sources = self.sources_for(ns, level);
-        let frontier: std::collections::HashSet<NodeId> = self.levels[level as usize]
+        let Some(frontier) = self.levels.get(level as usize) else {
+            return (Some(ns), Vec::new());
+        };
+        let frontier: std::collections::HashSet<NodeId> = frontier
             .iter()
             .copied()
             .filter(|&a| a != ns && self.qualifies(a))
             .collect();
-        let adj = Adj::incoming(self.p.kind);
-        let buckets = self.p.score_buckets.clone();
-        let best = self.select_in(adj, &sources, &buckets, |a| frontier.contains(&a));
+        let sources = self.sources_for(ns, level);
+        let best = self.select_in(Adj::incoming(kind), &sources, buckets, |a| {
+            frontier.contains(&a)
+        });
         let mut hits: Vec<Hit> = best
             .into_iter()
             .map(|(author, (_, edge))| Hit { author, edge })
@@ -548,9 +579,14 @@ impl<'g> Walker<'g> {
     }
 
     fn counted(&self, hits: &[Hit]) -> usize {
-        if self.p.kind == KIND_TRUST {
+        Self::counted_for(self.g, self.p.kind, hits)
+    }
+
+    /// `counted(hits)` of wot-model §6.
+    pub fn counted_for(g: &Graph, kind: u32, hits: &[Hit]) -> usize {
+        if kind == KIND_TRUST {
             hits.iter()
-                .filter(|h| self.g.edge(h.edge).trust_value().is_some_and(|v| v != 0))
+                .filter(|h| g.edge(h.edge).trust_value().is_some_and(|v| v != 0))
                 .count()
         } else {
             hits.len()
@@ -684,16 +720,23 @@ impl<'g> Walker<'g> {
 
     /// Whether any record can address the subject (early return).
     fn subject_has_evidence_sources(&self) -> bool {
-        let Some(s) = self.p.subject else {
+        self.has_evidence_sources(self.p.subject, self.p.kind, &self.p.score_buckets)
+    }
+
+    /// Whether any record in `buckets` can address `subject` or an X
+    /// account that could bind to it. When none can, the result is
+    /// disconnected and the search stops at level 0 (walk and field alike).
+    pub fn has_evidence_sources(
+        &self,
+        subject: Option<NodeId>,
+        kind: u32,
+        buckets: &[BucketId],
+    ) -> bool {
+        let Some(s) = subject else {
             return false;
         };
-        let adj = Adj::incoming(self.p.kind);
-        let has_in = |n: NodeId| {
-            self.p
-                .score_buckets
-                .iter()
-                .any(|&b| self.g.bucket_len(adj, n, b) > 0)
-        };
+        let adj = Adj::incoming(kind);
+        let has_in = |n: NodeId| buckets.iter().any(|&b| self.g.bucket_len(adj, n, b) > 0);
         if has_in(s) {
             return true;
         }

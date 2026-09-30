@@ -12,6 +12,7 @@ use dtp_graph::{EdgeCols, EdgeId, Graph, NodeId, NodeInfo, NodeType};
 use dtp_model::score::resolution;
 use dtp_model::{KIND_RATING, KIND_TRUST, Subject};
 
+use crate::field::Field;
 use crate::query::{Limits, ResolveQuery};
 use crate::walk::{
     BindOutcome, BindingMode, Budgets, OwnEvidence, OwnSource, WalkOutcome, WalkParams, Walker,
@@ -126,6 +127,12 @@ fn own_evidence(g: &Graph, ctx: &ExecCtx, root: &str) -> Vec<OwnEvidence> {
         .collect()
 }
 
+/// Hop threshold of a query kind: the green knob for trust, 1 for ratings
+/// (product profile `attention`).
+pub fn threshold_for(kind: u32, q: &ResolveQuery) -> u64 {
+    if kind == KIND_RATING { 1 } else { q.green }
+}
+
 fn walk(
     g: &Graph,
     q: &ResolveQuery,
@@ -133,9 +140,20 @@ fn walk(
     kind: u32,
     threshold: u64,
 ) -> Option<WalkOutcome> {
+    Some(Walker::new(g, walk_params(g, q, ctx, kind, threshold)?).run())
+}
+
+/// Walk inputs for a query (`None` when the root is not in the graph).
+pub fn walk_params(
+    g: &Graph,
+    q: &ResolveQuery,
+    ctx: &ExecCtx,
+    kind: u32,
+    threshold: u64,
+) -> Option<WalkParams> {
     let root = g.node_id(&q.root)?;
     let contexts = g.contexts();
-    let params = WalkParams {
+    Some(WalkParams {
         root,
         subject: g.node_id(&q.subject.node_key()),
         kind,
@@ -148,8 +166,24 @@ fn walk(
         own: own_evidence(g, ctx, &q.root),
         budgets: ctx.budgets(q),
         track_contrib: q.format_path,
-    };
-    Some(Walker::new(g, params).run())
+    })
+}
+
+/// Result for a query answered from a root field (see [`crate::field`]).
+pub fn from_field(
+    g: &Graph,
+    q: &ResolveQuery,
+    ctx: &ExecCtx,
+    kind: u32,
+    field: &mut Field,
+) -> Value {
+    let buckets = g.contexts().chain(kind, &q.context);
+    let outcome = field.resolve(g.node_id(&q.subject.node_key()), kind, &buckets);
+    if kind == KIND_RATING {
+        rating_result(g, q, ctx, Some(outcome))
+    } else {
+        trust_result(g, q, ctx, Some(outcome))
+    }
 }
 
 /// `binding` provenance for `user:id` subjects.
@@ -293,7 +327,16 @@ fn truncation_fields(out: &mut Map<String, Value>, reasons: &[&str], complete_de
 
 /// `trust.query` (kind 32009).
 pub fn execute_trust(g: &Graph, q: &ResolveQuery, ctx: &ExecCtx) -> Value {
-    let outcome = walk(g, q, ctx, KIND_TRUST, q.green);
+    trust_result(g, q, ctx, walk(g, q, ctx, KIND_TRUST, q.green))
+}
+
+/// Maps a walk (or field) outcome to `TrustQueryResult`.
+pub fn trust_result(
+    g: &Graph,
+    q: &ResolveQuery,
+    ctx: &ExecCtx,
+    outcome: Option<WalkOutcome>,
+) -> Value {
     let connected = outcome.as_ref().is_some_and(|o| o.connected);
     let degree = outcome.as_ref().map_or(0, |o| o.degree);
 
@@ -445,7 +488,16 @@ fn mean_json(scores: &[f64]) -> Value {
 
 /// `rating.query` (kind 32014; hop threshold fixed at 1).
 pub fn execute_rating(g: &Graph, q: &ResolveQuery, ctx: &ExecCtx) -> Value {
-    let outcome = walk(g, q, ctx, KIND_RATING, 1);
+    rating_result(g, q, ctx, walk(g, q, ctx, KIND_RATING, 1))
+}
+
+/// Maps a walk (or field) outcome to `RatingQueryResult`.
+pub fn rating_result(
+    g: &Graph,
+    q: &ResolveQuery,
+    ctx: &ExecCtx,
+    outcome: Option<WalkOutcome>,
+) -> Value {
     let mut claims: Vec<(u64, String, Value, NodeId, f64, EdgeId)> = Vec::new();
     if let Some(o) = outcome.as_ref().filter(|o| o.connected) {
         let distance = u64::from(o.degree) - 1;
@@ -621,6 +673,10 @@ pub fn execute_batch(
     let mut results = Map::new();
     let mut errors = Map::new();
     let mut seen: HashMap<String, ()> = HashMap::new();
+    // Items share root, hop context, threshold, depth, mode, and `now`
+    // (only subject / context / labels vary), so one root field serves every
+    // eligible item: one walk plus a hit test per item.
+    let mut field: Option<Option<Field>> = None;
     for item in items {
         let Some(obj) = item.as_object() else {
             return crate::query::invalid("items must be objects");
@@ -644,10 +700,16 @@ pub fn execute_batch(
         }
         match ResolveQuery::parse(&params, ctx.limits, server_now) {
             Ok(q) => {
-                let result = if kind == KIND_RATING {
-                    execute_rating(g, &q, ctx)
-                } else {
-                    execute_trust(g, &q, ctx)
+                let built = field.get_or_insert_with(|| {
+                    walk_params(g, &q, ctx, kind, threshold_for(kind, &q))
+                        .map(|p| Field::build(g, p, &q.hop_context))
+                });
+                let result = match built {
+                    Some(f) if !q.format_path && f.serves(kind, &q.context) => {
+                        from_field(g, &q, ctx, kind, f)
+                    }
+                    _ if kind == KIND_RATING => execute_rating(g, &q, ctx),
+                    _ => execute_trust(g, &q, ctx),
                 };
                 results.insert(key.to_string(), result);
             }
