@@ -9,6 +9,7 @@
 pub mod canon;
 pub mod case;
 pub mod protocol;
+pub mod session;
 
 use std::path::{Path, PathBuf};
 
@@ -23,6 +24,8 @@ pub struct Report {
     pub passed: usize,
     pub failures: Vec<(String, Vec<String>)>,
     pub skipped: Vec<(String, String)>,
+    /// Passed `gap:*` cases: `expectModel` holds, so the gap is fixed here.
+    pub gap_fixed: Vec<String>,
 }
 
 impl Report {
@@ -32,9 +35,10 @@ impl Report {
 
     pub fn summary(&self) -> String {
         let mut s = format!(
-            "{} cases: {} passed, {} failed, {} skipped",
+            "{} cases: {} passed ({} gap fixed), {} failed, {} skipped",
             self.total,
             self.passed,
+            self.gap_fixed.len(),
             self.failures.len(),
             self.skipped.len()
         );
@@ -50,10 +54,21 @@ impl Report {
         s
     }
 
-    fn absorb(&mut self, id: String, outcome: CaseOutcome) {
+    fn run(&mut self, case: &Value, fallback: &str) {
+        let id = case_id(case, fallback);
+        let gap = case.get("tags").and_then(Value::as_array).is_some_and(|t| {
+            t.iter()
+                .filter_map(Value::as_str)
+                .any(|t| t.starts_with("gap:"))
+        });
         self.total += 1;
-        match outcome {
-            CaseOutcome::Pass => self.passed += 1,
+        match run_case(case) {
+            CaseOutcome::Pass => {
+                self.passed += 1;
+                if gap {
+                    self.gap_fixed.push(id);
+                }
+            }
             CaseOutcome::Fail(errs) => self.failures.push((id, errs)),
             CaseOutcome::Skip(why) => self.skipped.push((id, why)),
         }
@@ -131,7 +146,7 @@ pub fn run_dir(dir: &Path) -> Report {
         collect_files(dir, &mut files);
     }
     for (i, case) in inline.iter().enumerate() {
-        report.absorb(case_id(case, &format!("inline-{i}")), run_case(case));
+        report.run(case, &format!("inline-{i}"));
     }
     for file in files {
         let name = file.display().to_string();
@@ -147,15 +162,15 @@ pub fn run_dir(dir: &Path) -> Report {
             }
             Ok(Value::Array(cases)) => {
                 for (i, case) in cases.iter().enumerate() {
-                    report.absorb(case_id(case, &format!("{name}#{i}")), run_case(case));
+                    report.run(case, &format!("{name}#{i}"));
                 }
             }
             Ok(Value::Object(obj)) if obj.get("cases").is_some_and(Value::is_array) => {
                 for (i, case) in obj["cases"].as_array().into_iter().flatten().enumerate() {
-                    report.absorb(case_id(case, &format!("{name}#{i}")), run_case(case));
+                    report.run(case, &format!("{name}#{i}"));
                 }
             }
-            Ok(case) => report.absorb(case_id(&case, &name), run_case(&case)),
+            Ok(case) => report.run(&case, &name),
         }
     }
     report

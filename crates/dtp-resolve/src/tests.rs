@@ -432,3 +432,42 @@ fn lookup_pages_add_up() {
     sorted.sort_by(|a, b| b.cmp(a));
     assert_eq!(times, sorted);
 }
+
+#[test]
+fn neighborhood_expands_extra_keys_and_cuts_by_event_id() {
+    let mut t = G::new();
+    t.push("carol", "alice", "identity", 1);
+    t.push("alice", "bob", "identity", 1);
+    t.push("alt", "dave", "identity", -1);
+    t.push("alt", "erin", "identity", 1);
+    let limits = Limits::protocol_defaults();
+    let run = |params: Value| {
+        crate::lookup::neighborhood(&t.g, params.as_object().unwrap(), 1, &limits, 5000).unwrap()
+    };
+    let keys = json!([format!("p:{}", h("alice")), format!("p:{}", h("alt"))]);
+    let all = run(json!({ "keys": keys, "context": "identity" }));
+    let edges = all["edges"].as_array().unwrap();
+    assert_eq!(edges.len(), 4, "{all}");
+    let ids: Vec<&str> = edges
+        .iter()
+        .map(|e| e["eventId"].as_str().unwrap())
+        .collect();
+    let mut sorted = ids.clone();
+    sorted.sort();
+    assert_eq!(ids, sorted, "edges are in eventId order");
+    let cut = run(json!({ "keys": keys, "context": "identity", "limit": 2 }));
+    assert_eq!(cut["truncated"], true);
+    let cut_ids: Vec<&str> = cut["edges"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| e["eventId"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        cut_ids,
+        sorted[..2].to_vec(),
+        "the cut keeps the lowest eventIds"
+    );
+    let single = run(json!({ "keys": [format!("p:{}", h("alice"))], "context": "identity" }));
+    assert_eq!(single["edges"].as_array().unwrap().len(), 2);
+}

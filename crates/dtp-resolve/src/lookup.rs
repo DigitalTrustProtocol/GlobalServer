@@ -702,9 +702,9 @@ pub fn neighborhood(
         ),
         Some(_) => return invalid("valueFilter must be 1, 0, -1, an array of them, or all"),
     };
-    let limit = opt_u64(params, "limit")?.unwrap_or(100) as usize;
+    let limit = opt_u64(params, "limit")?.unwrap_or(200) as usize;
     let limit_capped = limit.min(limits.max_neighborhood_limit);
-    let context = parse_context(params, "context", "identity")?;
+    let context = parse_context(params, "context", "")?;
     let Some(center) = center else {
         return Ok(
             json!({ "graphVersion": graph_version, "centerId": Value::Null, "truncated": false, "nodes": [], "edges": [] }),
@@ -725,7 +725,8 @@ pub fn neighborhood(
         now: opt_u64(params, "now")?.unwrap_or(server_now),
         since: None,
         until: None,
-        raw: false,
+        // Every active winner in the chain buckets is an edge.
+        raw: true,
         merge_keys: false,
         order: Order::Recent,
         limit: limit_capped,
@@ -745,36 +746,74 @@ pub fn neighborhood(
             .as_ref()
             .is_none_or(|vs| vs.contains(&display_value(g.edge(r.edge))))
     };
-    let mut rows: Vec<(Row, bool)> = Vec::new();
-    let mut directions = Vec::new();
+    // With `keys`, the other `p:` keys (the center's own accounts) also
+    // expand outward.
+    let mut outward: Vec<NodeId> = Vec::new();
+    if center_info.ty == NodeType::P {
+        outward.push(center);
+    }
+    if params.get("centerId").is_none()
+        && let Some(keys) = params.get("keys").and_then(Value::as_array)
+    {
+        for k in keys.iter().skip(1) {
+            let Some(subject) = k.as_str().and_then(Subject::from_wire_id) else {
+                return invalid("keys must be wire node ids");
+            };
+            if subject.ty == SubjectType::P
+                && let Some(n) = g.node_id(&subject.node_key())
+                && !outward.contains(&n)
+            {
+                outward.push(n);
+            }
+        }
+    }
+    let center_subject = center_info.subject();
+    let post_center = center_subject.ty == SubjectType::E
+        || (center_subject.ty == SubjectType::I
+            && dtp_model::subject::twitter_post_id(&center_subject.value).is_some());
+    let mut rows: Vec<Row> = Vec::new();
+    let mut expand = |dir: Direction, node: NodeId, with_ratings: bool| {
+        let keys = vec![g.node(node).subject().wire_id()];
+        rows.extend(collect(g, &base, dir, &keys, limits).rows);
+        if with_ratings {
+            rows.extend(
+                collect(g, &ratings, dir, &keys, limits)
+                    .rows
+                    .into_iter()
+                    .filter(|r| keep_rating(r)),
+            );
+        }
+    };
     if direction != "out" && direction != "outgoing" {
-        directions.push(Direction::Incoming);
+        expand(Direction::Incoming, center, post_center);
     }
-    if direction != "in" && direction != "incoming" && center_info.ty == NodeType::P {
-        directions.push(Direction::Outgoing);
+    if direction != "in" && direction != "incoming" {
+        for &n in &outward {
+            expand(Direction::Outgoing, n, false);
+        }
     }
-    for dir in directions {
-        let incoming = dir == Direction::Incoming;
-        rows.extend(
-            collect(g, &base, dir, &base.keys, limits)
-                .rows
-                .into_iter()
-                .map(|r| (r, incoming)),
-        );
-        rows.extend(
-            collect(g, &ratings, dir, &ratings.keys, limits)
-                .rows
-                .into_iter()
-                .filter(|r| keep_rating(r))
-                .map(|r| (r, incoming)),
-        );
-    }
-    rows.sort_by_key(|(r, _)| sort_key(Order::Recent, r));
+    // Past `limit`, edges are kept in `eventId` order so every server cuts
+    // the same set.
+    let mut seen: HashSet<EdgeId> = HashSet::new();
+    rows.retain(|r| seen.insert(r.edge));
+    // One arrow per (from, to): a trust edge that passed `valueFilter` hides
+    // the same author's rating arrow.
+    let trust_pairs: HashSet<(NodeId, NodeId)> = rows
+        .iter()
+        .map(|r| g.edge(r.edge))
+        .filter(|e| e.kind == KIND_TRUST)
+        .map(|e| (e.author, e.subject))
+        .collect();
+    rows.retain(|r| {
+        let e = g.edge(r.edge);
+        e.kind == KIND_TRUST || !trust_pairs.contains(&(e.author, e.subject))
+    });
+    rows.sort_by_key(|r| g.edge(r.edge).id);
     let truncated = rows.len() > limit_capped;
     rows.truncate(limit_capped);
     let mut node_ids: Vec<NodeId> = vec![center];
     let mut edges = Vec::new();
-    for (r, _) in &rows {
+    for r in &rows {
         let edge = g.edge(r.edge);
         for n in [edge.author, edge.subject] {
             if !node_ids.contains(&n) {
@@ -800,7 +839,7 @@ pub fn neighborhood(
             json!({
                 "id": n,
                 "kind": kind,
-                "depth": if n == center { 0 } else { 1 },
+                "depth": if n == center || outward.contains(&n) { 0 } else { 1 },
                 "label": label,
                 "subject": subject_json(&info.subject()),
             })

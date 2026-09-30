@@ -1,0 +1,2409 @@
+{
+  "id": "session-basic-open",
+  "api": "v1",
+  "description": "Open access (auth.reads = auth.writes = open), empty server. Ingest with OK prefixes, NIP-09, limited REQ, resolver and lookup operations, errors.",
+  "config": {
+    "auth.reads": "open",
+    "auth.writes": "open",
+    "scopeProfile": "x.com"
+  },
+  "steps": [
+    {
+      "note": "accept",
+      "send": [
+        "EVENT",
+        {
+          "id": "29c9e10405ece8d7bf5f70afa9900f8778da0a64ce3558a7e9f5f384793b8f0c",
+          "pubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b",
+          "created_at": 1790000000,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "723cccb6464b2015f84a486de348139e468ffa8a1426033797f941086842d73d"
+            ],
+            [
+              "p",
+              "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "4eebce81e853492c6378c2806c4f60457aab593d0b82e05762179e68b7aac4ded351e3f9dd04232f66788c616b1d0d7e9afac41fea51fdc0f1d6784a7bcf70c7"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "29c9e10405ece8d7bf5f70afa9900f8778da0a64ce3558a7e9f5f384793b8f0c",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "780f5a0bce6b81221933dc21f6eb2a9fa3d4a32ab562e2a32349154142c568ca",
+          "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+          "created_at": 1790000001,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "7bd2dc00790b41473f7d06b93d55008065e79b940a34bcc9082039c7f807b886"
+            ],
+            [
+              "p",
+              "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "c347ddb25ce9790816ceeec15106a231ddcfa5535316d0837a8898f35e55876526c855725b046e410cc58029d88eee027407b1eca6718b2a01ca908806c0b3ee"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "780f5a0bce6b81221933dc21f6eb2a9fa3d4a32ab562e2a32349154142c568ca",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "156e216d0d45a8e3a7847d66fcb3601e8f0224517768307639c3a3649a5f8787",
+          "pubkey": "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e",
+          "created_at": 1790000002,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "c9ba756160865ed883a0ebf2730a6b84904c0f37f121a1e8393bc99ee42a0844"
+            ],
+            [
+              "i",
+              "user:id:11348282"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "k",
+              "user:id"
+            ],
+            [
+              "s",
+              "x.com"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "2d80cbdf27d92abeda2d98eb7c45edfe6c4f28f3bb7771ff849842c8fbad7b30c81ff9a3a45a8e299e6d30ae82dc408e9e8bb208482b2b6566d3a02242f3895c"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "156e216d0d45a8e3a7847d66fcb3601e8f0224517768307639c3a3649a5f8787",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "e4597eb628643f69419cc995890aecebee40073385b8974302ce558ba0d3bb07",
+          "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+          "created_at": 1790000003,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "23e1b9d275e755d2ec9ab1046b9d244421fe8591641ce7793675c481878c2cea"
+            ],
+            [
+              "i",
+              "post:id:2080659774136291424"
+            ],
+            [
+              "v",
+              "-1"
+            ],
+            [
+              "k",
+              "post:id"
+            ]
+          ],
+          "content": "",
+          "sig": "f902f92e7baf3ad638315b408a19c4f7b2fdebb6956011eb72fb2e2ef513cc43a8a45ad6631a798d4331d1f20975ab8f707ab582827fd8845049e65879c4ff8f"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "e4597eb628643f69419cc995890aecebee40073385b8974302ce558ba0d3bb07",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "24b4bc6f6ce4e6599109a21490267ad0d2f7b32d0cbff75469b5b74c88c121c8",
+          "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+          "created_at": 1790000004,
+          "kind": 32014,
+          "tags": [
+            [
+              "d",
+              "790a6b352182f4f7a0cf49bc90b5add72e0349fd1f8d836a44acdcd6b3fa5973"
+            ],
+            [
+              "i",
+              "post:id:2080659774136291424"
+            ],
+            [
+              "score",
+              "40"
+            ],
+            [
+              "k",
+              "post:id"
+            ],
+            [
+              "s",
+              "x.com"
+            ]
+          ],
+          "content": "",
+          "sig": "a6a575cf5c9a17115013e06aaf3cde82458e8bdf74e4e4c9aeaed83e1d8e628927712844da03f95aa6445a14db6c27ee058e892c95c598c671c33273729229a3"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "24b4bc6f6ce4e6599109a21490267ad0d2f7b32d0cbff75469b5b74c88c121c8",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "0d5d1fd6699dac4dea9a16c4b73600eeebe30452d6485a0d16b85d67622de93c",
+          "pubkey": "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d",
+          "created_at": 1790000005,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "7bd2dc00790b41473f7d06b93d55008065e79b940a34bcc9082039c7f807b886"
+            ],
+            [
+              "p",
+              "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+            ],
+            [
+              "v",
+              "-1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "5655987d8000dc28dc012db9ca80d8641412848de32caf3f1e2e6d7d517481978e0192fea427b2c488904144472f11edfbd6d005f9bdfe162f9b964e7f89e7b7"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "0d5d1fd6699dac4dea9a16c4b73600eeebe30452d6485a0d16b85d67622de93c",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "c57f6047f897ad6959105f76cff2d1c0ba1a3d997ce81dac32b9255e5ee3d095",
+          "pubkey": "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d",
+          "created_at": 1790000006,
+          "kind": 10011,
+          "tags": [
+            [
+              "i",
+              "twitter:nasa"
+            ],
+            [
+              "i",
+              "twitter_id:11348282"
+            ]
+          ],
+          "content": "",
+          "sig": "aab4602c80ae492fa3f9ba62d25d624b4b4b1135fd2c00a1dc7611730eb2033f35a0012bb6e5bdc6e1d0470e636ada5b6e89995f152b8de4c60e7eee1ee310ca"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "c57f6047f897ad6959105f76cff2d1c0ba1a3d997ce81dac32b9255e5ee3d095",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "note": "duplicate",
+      "send": [
+        "EVENT",
+        {
+          "id": "29c9e10405ece8d7bf5f70afa9900f8778da0a64ce3558a7e9f5f384793b8f0c",
+          "pubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b",
+          "created_at": 1790000000,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "723cccb6464b2015f84a486de348139e468ffa8a1426033797f941086842d73d"
+            ],
+            [
+              "p",
+              "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "4eebce81e853492c6378c2806c4f60457aab593d0b82e05762179e68b7aac4ded351e3f9dd04232f66788c616b1d0d7e9afac41fea51fdc0f1d6784a7bcf70c7"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "29c9e10405ece8d7bf5f70afa9900f8778da0a64ce3558a7e9f5f384793b8f0c",
+          true,
+          {
+            "$prefix": "duplicate:"
+          }
+        ]
+      ]
+    },
+    {
+      "note": "forged signature",
+      "send": [
+        "EVENT",
+        {
+          "id": "780f5a0bce6b81221933dc21f6eb2a9fa3d4a32ab562e2a32349154142c568ca",
+          "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+          "created_at": 1790000001,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "7bd2dc00790b41473f7d06b93d55008065e79b940a34bcc9082039c7f807b886"
+            ],
+            [
+              "p",
+              "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "780f5a0bce6b81221933dc21f6eb2a9fa3d4a32ab562e2a32349154142c568ca",
+          false,
+          {
+            "$prefix": "invalid:"
+          }
+        ]
+      ]
+    },
+    {
+      "note": "kind not held",
+      "send": [
+        "EVENT",
+        {
+          "id": "146e4bfe85b025db809244cfa5e2015b07ed92ca736ea809ee9c08812e65db50",
+          "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+          "created_at": 1790000000,
+          "kind": 1,
+          "tags": [],
+          "content": "not held",
+          "sig": "cb3d5df1e872f15799d2e769d83cf620e35d5605a86d09f6236523ef4654ab5ba642f1ef91699100897cfabe113a8861a116959df90590a18bf43109349b45de"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "146e4bfe85b025db809244cfa5e2015b07ed92ca736ea809ee9c08812e65db50",
+          false,
+          {
+            "$prefix": "blocked:"
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "s1",
+        "session.update",
+        {
+          "defaults": {
+            "rootPubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b",
+            "followTrustThreshold": 75,
+            "followTrustRed": 25,
+            "bounds": {
+              "maxDepth": 4
+            }
+          }
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "s1",
+          {
+            "defaults": {
+              "rootPubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "note": "two hops",
+      "send": [
+        "DTP",
+        "q1",
+        "trust.query",
+        {
+          "subject": {
+            "type": "p",
+            "value": "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+          }
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "q1",
+          {
+            "subject": {
+              "type": "p",
+              "value": "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+            },
+            "context": "identity",
+            "connected": true,
+            "degree": 2,
+            "trust": 1,
+            "distrust": 0,
+            "resolution": "trusted",
+            "sourceEventIds": [
+              "780f5a0bce6b81221933dc21f6eb2a9fa3d4a32ab562e2a32349154142c568ca"
+            ],
+            "statements": [
+              {
+                "eventId": "780f5a0bce6b81221933dc21f6eb2a9fa3d4a32ab562e2a32349154142c568ca",
+                "author": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+                "value": 1,
+                "distance": 1,
+                "contextMatch": "exact"
+              }
+            ],
+            "graphVersion": {
+              "$type": "number"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "note": "post trust falls back to the global bucket",
+      "send": [
+        "DTP",
+        "q2",
+        "trust.batch",
+        {
+          "items": [
+            {
+              "key": "post",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "bad",
+              "subject": {
+                "type": "x",
+                "value": "1"
+              }
+            }
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "q2",
+          {
+            "results": {
+              "post": {
+                "connected": true,
+                "degree": 2,
+                "distrust": 1,
+                "resolution": "distrusted",
+                "statements": [
+                  {
+                    "eventId": "e4597eb628643f69419cc995890aecebee40073385b8974302ce558ba0d3bb07",
+                    "contextMatch": "general"
+                  }
+                ]
+              }
+            },
+            "errors": {
+              "bad": {
+                "$prefix": "invalid:"
+              }
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "q3",
+        "rating.query",
+        {
+          "subject": {
+            "type": "i",
+            "value": "post:id:2080659774136291424"
+          }
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "q3",
+          {
+            "degree": 2,
+            "claimCount": 1,
+            "averageScore": 40,
+            "claims": [
+              {
+                "eventId": "24b4bc6f6ce4e6599109a21490267ad0d2f7b32d0cbff75469b5b74c88c121c8",
+                "author": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+                "score": 40,
+                "distance": 1
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "l1",
+        "lookup.incoming",
+        {
+          "keys": [
+            "p:58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+          ],
+          "context": "identity",
+          "withTotals": true
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "l1",
+          {
+            "items": [
+              {
+                "eventId": "0d5d1fd6699dac4dea9a16c4b73600eeebe30452d6485a0d16b85d67622de93c",
+                "author": "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d",
+                "value": -1,
+                "kind": 32009
+              },
+              {
+                "eventId": "780f5a0bce6b81221933dc21f6eb2a9fa3d4a32ab562e2a32349154142c568ca",
+                "author": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+                "value": 1,
+                "kind": 32009
+              }
+            ],
+            "totals": {
+              "trust": 1,
+              "neutral": 0,
+              "distrust": 1,
+              "ratings": 0
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "l2",
+        "lookup.counts",
+        {
+          "keys": [
+            "p:e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+          ],
+          "direction": "outgoing",
+          "kinds": [
+            32009,
+            32014
+          ],
+          "contextMatch": "any"
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "l2",
+          {
+            "counts": {
+              "p:e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada": {
+                "trust": 1,
+                "neutral": 0,
+                "distrust": 1,
+                "ratings": 1
+              }
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "f1",
+        "graph.frontier",
+        {
+          "roots": [
+            "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b"
+          ],
+          "maxDepth": 3
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "f1",
+          {
+            "authors": [
+              {
+                "pubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b",
+                "depth": 0
+              },
+              {
+                "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+                "depth": 1,
+                "via": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b"
+              },
+              {
+                "pubkey": "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e",
+                "depth": 2,
+                "via": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+              }
+            ],
+            "reasons": []
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "c1",
+        "identity.claims",
+        {
+          "twitterId": "11348282"
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "c1",
+          {
+            "claims": [
+              {
+                "pubkey": "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d",
+                "eventId": "c57f6047f897ad6959105f76cff2d1c0ba1a3d997ce81dac32b9255e5ee3d095"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "note": "REQ by id",
+      "send": [
+        "REQ",
+        "r1",
+        {
+          "ids": [
+            "780f5a0bce6b81221933dc21f6eb2a9fa3d4a32ab562e2a32349154142c568ca"
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "EVENT",
+          "r1",
+          {
+            "id": "780f5a0bce6b81221933dc21f6eb2a9fa3d4a32ab562e2a32349154142c568ca",
+            "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+            "created_at": 1790000001,
+            "kind": 32009,
+            "tags": [
+              [
+                "d",
+                "7bd2dc00790b41473f7d06b93d55008065e79b940a34bcc9082039c7f807b886"
+              ],
+              [
+                "p",
+                "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+              ],
+              [
+                "v",
+                "1"
+              ],
+              [
+                "c",
+                "identity"
+              ]
+            ],
+            "content": "",
+            "sig": "c347ddb25ce9790816ceeec15106a231ddcfa5535316d0837a8898f35e55876526c855725b046e410cc58029d88eee027407b1eca6718b2a01ca908806c0b3ee"
+          }
+        ],
+        [
+          "EOSE",
+          "r1"
+        ]
+      ]
+    },
+    {
+      "note": "REQ outside the limited reads",
+      "send": [
+        "REQ",
+        "r2",
+        {
+          "#p": [
+            "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "CLOSED",
+          "r2",
+          {
+            "$prefix": "unsupported:"
+          }
+        ]
+      ]
+    },
+    {
+      "note": "unknown op",
+      "send": [
+        "DTP",
+        "e1",
+        "no.such.op",
+        {}
+      ],
+      "expect": [
+        [
+          "DTP-ERR",
+          "e1",
+          "invalid",
+          {
+            "$type": "string"
+          }
+        ]
+      ]
+    },
+    {
+      "note": "bad lookup key",
+      "send": [
+        "DTP",
+        "e2",
+        "lookup.incoming",
+        {
+          "keys": [
+            "nope"
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "DTP-ERR",
+          "e2",
+          "invalid",
+          {
+            "$type": "string"
+          }
+        ]
+      ]
+    },
+    {
+      "note": "malformed root",
+      "send": [
+        "DTP",
+        "e3",
+        "trust.query",
+        {
+          "rootPubkey": "nothex",
+          "subject": {
+            "type": "i",
+            "value": "post:id:2080659774136291424"
+          }
+        }
+      ],
+      "expect": [
+        [
+          "DTP-ERR",
+          "e3",
+          "invalid",
+          {
+            "$type": "string"
+          }
+        ]
+      ]
+    },
+    {
+      "note": "batch cap",
+      "send": [
+        "DTP",
+        "e4",
+        "trust.batch",
+        {
+          "items": [
+            {
+              "key": "k0",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k1",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k2",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k3",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k4",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k5",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k6",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k7",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k8",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k9",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k10",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k11",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k12",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k13",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k14",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k15",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k16",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k17",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k18",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k19",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k20",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k21",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k22",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k23",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k24",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k25",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k26",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k27",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k28",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k29",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k30",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k31",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k32",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k33",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k34",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k35",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k36",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k37",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k38",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k39",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k40",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k41",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k42",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k43",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k44",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k45",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k46",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k47",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k48",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k49",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k50",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k51",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k52",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k53",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k54",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k55",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k56",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k57",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k58",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k59",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k60",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k61",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k62",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k63",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k64",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k65",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k66",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k67",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k68",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k69",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k70",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k71",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k72",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k73",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k74",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k75",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k76",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k77",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k78",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k79",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k80",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k81",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k82",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k83",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k84",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k85",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k86",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k87",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k88",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k89",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k90",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k91",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k92",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k93",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k94",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k95",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k96",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k97",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k98",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k99",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k100",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k101",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k102",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k103",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k104",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k105",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k106",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k107",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k108",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k109",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k110",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k111",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k112",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k113",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k114",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k115",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k116",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k117",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k118",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k119",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k120",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k121",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k122",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k123",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k124",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k125",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k126",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k127",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k128",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k129",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k130",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k131",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k132",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k133",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k134",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k135",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k136",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k137",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k138",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k139",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k140",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k141",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k142",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k143",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k144",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k145",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k146",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k147",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k148",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k149",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k150",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k151",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k152",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k153",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k154",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k155",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k156",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k157",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k158",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k159",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k160",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k161",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k162",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k163",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k164",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k165",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k166",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k167",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k168",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k169",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k170",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k171",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k172",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k173",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k174",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k175",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k176",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k177",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k178",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k179",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k180",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k181",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k182",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k183",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k184",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k185",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k186",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k187",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k188",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k189",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k190",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k191",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k192",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k193",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k194",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k195",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k196",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k197",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k198",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k199",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "k200",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            }
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "DTP-ERR",
+          "e4",
+          "invalid",
+          {
+            "$type": "string"
+          }
+        ]
+      ]
+    },
+    {
+      "note": "only the author may delete",
+      "send": [
+        "EVENT",
+        {
+          "id": "103cbe8bc23ab9b7e175e3b90cae8ef923ea87b924296cb7d328ab27e7414e93",
+          "pubkey": "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d",
+          "created_at": 1790000010,
+          "kind": 5,
+          "tags": [
+            [
+              "e",
+              "29c9e10405ece8d7bf5f70afa9900f8778da0a64ce3558a7e9f5f384793b8f0c"
+            ]
+          ],
+          "content": "",
+          "sig": "85151f8a0859591b1ce9fc27f176cd763d4f62f9ebf149706aad20efe2a107524ecee26cced3b1ddc0764af497e479bc80f53bf65bf022139b4a47eeb4bcc923"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "103cbe8bc23ab9b7e175e3b90cae8ef923ea87b924296cb7d328ab27e7414e93",
+          false,
+          {
+            "$prefix": "blocked:"
+          }
+        ]
+      ]
+    },
+    {
+      "note": "NIP-09 deletion",
+      "send": [
+        "EVENT",
+        {
+          "id": "2c1c66f8d84ac1cc6911422b0f30b3bb3e25ec5d78b41d561c264be4c192d7a8",
+          "pubkey": "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d",
+          "created_at": 1790000010,
+          "kind": 5,
+          "tags": [
+            [
+              "e",
+              "0d5d1fd6699dac4dea9a16c4b73600eeebe30452d6485a0d16b85d67622de93c"
+            ],
+            [
+              "k",
+              "32009"
+            ]
+          ],
+          "content": "",
+          "sig": "0d399ba902d29f50c3bcfc9cb64cbf7441bbeca75d012c1d8287397c391f93f40592ba7937fcfd5c61b48e6f73cf930c769df298f2f47f6c1d4e5446bf780d2f"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "2c1c66f8d84ac1cc6911422b0f30b3bb3e25ec5d78b41d561c264be4c192d7a8",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "note": "deleted stays deleted",
+      "send": [
+        "EVENT",
+        {
+          "id": "0d5d1fd6699dac4dea9a16c4b73600eeebe30452d6485a0d16b85d67622de93c",
+          "pubkey": "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d",
+          "created_at": 1790000005,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "7bd2dc00790b41473f7d06b93d55008065e79b940a34bcc9082039c7f807b886"
+            ],
+            [
+              "p",
+              "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+            ],
+            [
+              "v",
+              "-1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "5655987d8000dc28dc012db9ca80d8641412848de32caf3f1e2e6d7d517481978e0192fea427b2c488904144472f11edfbd6d005f9bdfe162f9b964e7f89e7b7"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "0d5d1fd6699dac4dea9a16c4b73600eeebe30452d6485a0d16b85d67622de93c",
+          false,
+          {
+            "$prefix": "blocked:"
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "l3",
+        "lookup.incoming",
+        {
+          "keys": [
+            "p:58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+          ],
+          "context": "identity"
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "l3",
+          {
+            "items": [
+              {
+                "eventId": "780f5a0bce6b81221933dc21f6eb2a9fa3d4a32ab562e2a32349154142c568ca"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "REQ",
+        "r3",
+        {
+          "ids": [
+            "0d5d1fd6699dac4dea9a16c4b73600eeebe30452d6485a0d16b85d67622de93c"
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "EOSE",
+          "r3"
+        ]
+      ]
+    }
+  ]
+}

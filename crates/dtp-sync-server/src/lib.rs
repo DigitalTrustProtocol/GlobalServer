@@ -19,7 +19,7 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use tokio::sync::{mpsc, watch};
 
-use dtp_model::{Event, Keys};
+use dtp_model::{Event, KIND_DELETION, Keys};
 use dtp_relay::{PushStats, Pusher};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -146,8 +146,12 @@ async fn relay_task(
         )
         .await
         {
-            Ok(events) => {
+            Ok(mut events) => {
                 tracing::info!(relay = %url, events = events.len(), "backfill done");
+                // A kind 5 that matches no held event is refused
+                // (resolver-api § OK prefixes), so deletions go after the
+                // newest-first backfill has delivered their targets.
+                events.sort_by_key(|e| e.kind == KIND_DELETION);
                 for e in events {
                     if tx.send(e).await.is_err() {
                         return;
@@ -190,6 +194,7 @@ async fn target_task(
 ) {
     let mut attempt = 0;
     let mut batch: Vec<Event> = Vec::new();
+    let mut carry: Option<Event> = None;
     loop {
         let mut pusher = match Pusher::connect(&url, &keys).await {
             Ok(p) => {
@@ -206,16 +211,27 @@ async fn target_task(
         };
         loop {
             if batch.is_empty() {
-                tokio::select! {
-                    next = rx.recv() => match next {
-                        Some(e) => batch.push(e),
-                        None => return,
+                match carry.take() {
+                    Some(e) => batch.push(e),
+                    None => tokio::select! {
+                        next = rx.recv() => match next {
+                            Some(e) => batch.push(e),
+                            None => return,
+                        },
+                        _ = stop.changed() => return,
                     },
-                    _ = stop.changed() => return,
                 }
+                // A batch is answered only once every event has its `OK`,
+                // and the resolver verifies events in parallel, so
+                // deletions never share a batch with the events they target.
+                let deletions = batch[0].kind == KIND_DELETION;
                 while batch.len() < 500 {
                     match rx.try_recv() {
-                        Ok(e) => batch.push(e),
+                        Ok(e) if (e.kind == KIND_DELETION) == deletions => batch.push(e),
+                        Ok(e) => {
+                            carry = Some(e);
+                            break;
+                        }
                         Err(_) => break,
                     }
                 }

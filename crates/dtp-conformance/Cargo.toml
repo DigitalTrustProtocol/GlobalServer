@@ -13,5 +13,13 @@ dtp-resolve.workspace = true
 serde_json.workspace = true
 anyhow.workspace = true
 
+[dev-dependencies]
+dtp-api.workspace = true
+dtp-store.workspace = true
+tokio.workspace = true
+tokio-tungstenite.workspace = true
+futures-util.workspace = true
+tempfile.workspace = true
+
 [lints]
 workspace = true

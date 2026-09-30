@@ -784,8 +784,10 @@ pub fn run_model_case(case: &Value) -> CaseOutcome {
             run_pages(&setup, qtype, &input, pages, &mut errors, qi);
             continue;
         }
+        // conformance.md § Known gaps: a gap case is asserted on
+        // `expectModel` only, never on `expect` or `expectCurrent`.
         let expect = if gap {
-            q.get("expectModel").or_else(|| q.get("expect"))
+            q.get("expectModel")
         } else {
             q.get("expect")
         };

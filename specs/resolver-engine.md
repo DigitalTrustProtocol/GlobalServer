@@ -129,7 +129,7 @@ the Global defaults from
 | `batchDeadline` | 500 ms | Before each item's hit test; unfinished items get `errors[key] = "timeout"` |
 | `maxDepth` | 6 | Clamps `bounds.maxDepth` |
 | `maxReachedNodes` | 5 M | Before a level is expanded |
-| `maxWalkRecords` | 50 M | Before a level is expanded |
+| `maxWalkRecords` | 50 M | Before a level is expanded: one record per (qualifying frontier author, subject) in its hop-chain buckets (wot-model §6.2). Bucket lengths give a cheap upper bound; distinct subjects are counted only when that bound could exceed the budget |
 | `maxColdWalks` | `cores / 2` | Further builds queue for up to 50 ms, then `busy` |
 
 Field memory is an implementation limit, not a protocol one: a field that
@@ -230,8 +230,11 @@ onto the clustered storage:
   guardrail and page in smaller steps.
 - **Batches.** `lookup.batch` prefetches every key's runs in one submission,
   like a resolver batch, then runs the queries in parallel on the rayon pool.
-- **Neighborhood.** An incoming and an outgoing lookup for one center with
-  `limit`; node `id` = `NodeId` for this `instanceId`, always with `subject`.
+- **Neighborhood.** An incoming and an outgoing lookup for one center (plus
+  outgoing for extra `keys`) over every active 32009 winner in the context
+  chain, plus 32014 arrows into a post / `e` center; rows sorted by event id
+  before the `limit` cut; node `id` = `NodeId` for this `instanceId`, always
+  with `subject`.
 
 ## Other read paths
 

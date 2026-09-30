@@ -12,6 +12,17 @@ open.
 | Session | Delivered |
 | --- | --- |
 | 2026-09-30 (1) | Repository, toolchain, workspace and CI; G0 (model, graph, exact walk with binds and guardrails, lookups, conformance runner); G1/G2 server slice (redb store, WebSocket endpoint with every DTP operation, NIP-42/43, admin telemetry, `dtp-global` binary); `dtp-sync` basic; G3 root-field fast path for batches |
+| 2026-09-30 (2) | Session-suite runner (`dtp-conformance` `session` module + `tests/sessions.rs`, real `dtp-global` over WebSocket); gap convention (`expectModel` only, "gap fixed"); protocol and neighborhood fixes found by the sessions (see [Session suite divergences](#session-suite-divergences)); Node interop with `@dtp/resolver-client` (`interop/resolver-client.mjs`) |
+
+### Results at the end of session 2
+
+| Check | Result |
+| --- | --- |
+| fmt / clippy `-D warnings` / `cargo test --workspace` | clean / clean / green |
+| Local conformance cases | 73 / 73 (4 gap fixed) |
+| TrustGraph corpus, `DTP_CORPUS_STRICT=1` | 109 / 109 (16 gap fixed) |
+| Sessions (Rust runner, local pins and `../TrustGraph/corpus/sessions`) | basic-open 29 / 29, ops-open 27 / 27, walk-budgets 5 / 5; 0 failed, 0 skipped (the server has `graph.field` and lists no gaps) |
+| Sessions through `@dtp/resolver-client` (Node, not in CI) | same 29 / 27 / 5, 0 failed, 0 skipped |
 
 ### Results at the end of session 1
 
@@ -40,13 +51,16 @@ open.
 | D-other-out | Non-person outgoing winners (post trust, `e`, other `i`, ratings) have an in-memory per-author index | Lets the pure model answer outgoing lookups without the store. Noted in specs/graph-engine.md. |
 | D-epochs | The single writer thread publishes a new epoch after each ingest batch, before answering its `OK`s | A client that got `OK` sees its statement at once; the spec's ≤ 250 ms bound holds trivially. |
 | D-witness-degree | `binding.witnessDegree` = witness author's level + 1 (own witness = 1) | Mirrors `degree`. Needs confirmation in TrustGraph. |
-| D-budget-count | Node budget = distinct reached `p` nodes (root included) after a level; record budget = entries in the hop buckets of the qualifying frontier authors (active or not), checked before the level is built | Matches the corpus case `gap-g10-node-budget`; wot-model §6.2 should define the counters. |
+| D-budget-count | Node budget = distinct reached `p` nodes (root included) after a level; record budget = one per (qualifying frontier author, subject) in that author's hop-chain buckets, non-hop subjects included, hit check not counted, equal to the budget allowed; checked before the level is built. The walk sums bucket lengths as an upper bound and counts distinct subjects only when that bound could exceed the budget | wot-model §6.2 as pinned upstream; corpus `gap-g10-record-budget`, session walk-budgets. |
 | D-lookup-selected | `selected` mode: per (author, key, kind) the §4.3 statement over the filter's buckets (inactive records excluded unless `includeInactive`), then `values` / `labels` / `since` / `until`; `contextMatch: any` selects by the tie-break alone (scopeRank, newer, lower id) | `any` follows the corpus; the filter order is not specified in wot-model §8.1. |
-| D-neighborhood | `graph.neighborhood` returns 32009 edges (hop context chain, default `identity`) plus 32014 rating arrows (display value 1 if score ≥ 50 else −1); `valueFilter` accepts `all` / `both` / `trust` / `distrust` / `neutral` or value arrays; edges carry `kind` | Follows the corpus (`neighborhood-post-rating-arrows`). |
+| D-neighborhood | `graph.neighborhood`: default context `""`, limit 200; every active 32009 winner in the context chain is an edge; extra `keys` expand outward at depth 0; 32014 rating arrows (value 1 if score ≥ 50 else −1) only into a post / `e` center with direction in, and not for an author whose 32009 edge survives `valueFilter`; past `limit` edges are kept in event-id order; edges carry `kind`. A bound `user:id` center does not yet expand its bound pubkey | resolver-api as pinned upstream; session ops-open steps 14–16, corpus `neighborhood-post-rating-arrows`. |
+| D-default-context | `trust.*` operations force context `identity` before session defaults merge; `rating.*` default `""` | resolver-api; session basic-open steps 11–12. |
+| D-gap-convention | Corpus gap cases (`gap:*` tag) assert `expectModel` only and count as "gap fixed"; session steps gate on `requires` (capability or `fixed:Gn` = not in `info.gaps`), use `otherwise` when unmet, else skip | conformance.md as pinned upstream; the TS runner asserts `expectCurrent`. |
+| D-null-absent | The session runner lets an expected `null` match an absent field | corpus/README.md; the TS `matchFrame` requires a literal `null` (recorded below). |
 | D-frontier-via | `graph.frontier` `via` = the discovering author (lowest pubkey among supporters) | Follows the corpus; specs/resolver-engine.md updated (it said "lowest supporting event id"). |
 | D-g5 | Node keys keep the case of `web:` paths and `nostr:addr:` identifiers; everything else is lowercased | Gap G5 model rule; corpus `gap-g5-web-subject-case`. |
 | D-disconnected-binding | `binding` of a disconnected result is the bind at the last level examined; a subject no record can address stops at level 0 (walk and field alike) | Keeps results independent of which path answered (found by the random field = walk test). |
-| D-kind5 | A kind 5 with a malformed `e` tag is invalid; one without held targets (no `e`, no own-author `a` of a held kind, or `k` tags naming only other kinds) is valid but `blocked`; an `e` id the server does not hold leaves a tombstone so a later push by its author is `blocked: deleted` | Corpus protocol cases; avoids reviving events that arrive after their deletion. The kind 5 itself is not stored. |
+| D-kind5 | A kind 5 with a malformed `e` tag is invalid; one that matches no held event of its own author (no `e`, only other authors' events, no own-author `a` of a held kind, or `k` tags naming only other kinds) is `false blocked:` and not stored; `dtp-sync` backfills deletions after their targets and never verifies a deletion in the same batch as its target; an `e` id the server does not hold leaves a tombstone so a later push by its author is `blocked: deleted` | Corpus protocol cases; avoids reviving events that arrive after their deletion. The kind 5 itself is not stored. |
 | D-10011-winner | Any signature-valid kind 10011 is the author's replaceable winner; the claim exists only if the twitter tags validate | "Invalid → treated as none" and "revoked → no claim" (identity-binding §3). |
 | D-writer-limit | `maxWriterConnections` is enforced at `AUTH` (the pubkey is unknown at upgrade) | resolver-api says "refused at upgrade". |
 | D-coverage | Results omit `coverage` (always complete) | No `want` / root-warming path yet; the TS DTOs have no `coverage` either. |
@@ -147,7 +161,49 @@ open.
 Every protocol v1 operation is implemented, so no `DTP-ERR unsupported`
 answers exist today.
 
+## Session suite divergences
+
+Found by replaying `../TrustGraph/corpus/sessions` against `dtp-global`.
+In every fixed row the spec (and PersonalServer) was right and GlobalServer
+was behind; the fix is in this repository.
+
+| Script / step | Expected | GlobalServer before | Resolution |
+| --- | --- | --- | --- |
+| basic-open 8 | forged copy of a stored event id → `OK false invalid:` | `true duplicate:` (dedup ran before the signature check) | Fixed: `ws.rs` checks the signature first, then dedups |
+| basic-open 11–12 | `trust.*` default context `identity` | `""` from server defaults | Fixed: `ops.rs` (D-default-context) |
+| basic-open 24 | kind 5 naming another author's event → `false blocked:` | `true` (stored, no effect) | Fixed: `writer.rs` (D-kind5); `dtp-sync` reordered so the rule cannot drop a deletion that races its target |
+| basic-open push steps | `changed` = subject + author `p:<hex>`; claim = `i:user:id:<n>` | subject only; claims listed the pubkey | Fixed: `writer.rs` `slot_subjects` / `claim_subjects` |
+| ops-open 14–16, corpus `neighborhood-post-rating-arrows` | D-neighborhood rules | `identity` default, per-author selection, arrows on any center, limit cut in walk order | Fixed: `lookup.rs` |
+| walk-budgets, corpus `gap-g10-record-budget` | record budget counts (author, subject) pairs | counted bucket entries | Fixed: `walk.rs` (D-budget-count) |
+| (spec, no session step yet) error vocabulary | reused in-flight reqId → `DTP-ERR invalid` | second request ran | Fixed: `ws.rs` |
+
+Recorded, not changed (spec ambiguity):
+
+- **null vs absent.** `corpus/README.md` says an expected `null` matches an
+  absent field; `session-runner.ts` `matchFrame` requires a literal `null`.
+  No current step depends on it. The Rust runner follows the README; the
+  README is the normative text, so the TS runner should align (or the
+  README should say "literal null").
+- **Deletion order.** The unmatched-kind-5 rule makes the result depend on
+  arrival order (deletion before its target → `blocked`, then the target is
+  accepted). The spec should tell pushers and sync to send deletions after
+  their targets; `dtp-sync` now does.
+- **Neighborhood bound `user:id` center** "also expands its bound pubkey",
+  but binding needs a root, and `graph.neighborhood` has none. Not
+  implemented; the spec should name the viewer whose binding applies.
+- **Storage failure metric** (TrustGraph PLAN E8). `OK false error:` is
+  sent as specified, but `dtp_ingest_events_total{result}` has no `error`
+  value in telemetry.md, so it counts under `invalid` (the by-prefix reject
+  counter says `error`). telemetry.md should add `result="error"`.
+- **Budget check order.** When a level would exceed both the node and the
+  record budget, which `truncatedReason` wins is unspecified (this server:
+  record budget, checked before the level is built).
+
 ## Recommended TrustGraph spec changes (not edited from here)
+
+Items 1–3, 6 and 7 are being pinned upstream (gap:G4 tag, §6.2 counters,
+witnessDegree, error vocabulary, number comparison); re-check them against
+the final text. The four recorded ambiguities above are new.
 
 1. **Corpus `context-neutral-occupies-its-bucket`** expects `direct` on a
    disconnected result (TS leaks the last degree's Neutral, gap G4). Either
@@ -181,5 +237,5 @@ answers exist today.
 - **GS-D5** (default binding mode): `lenient` (config `model.binding_mode`,
   applied under session defaults together with the threshold knobs).
 - **GS-D2** (rust-nostr vs own client): minimal own client in `dtp-relay`.
-- **Session suite / telemetry UI**: waiting on `corpus/sessions` and
-  `@dtp/telemetry-ui` from TrustGraph.
+- **Telemetry UI**: waiting on `@dtp/telemetry-ui` from TrustGraph. (The
+  session suite now runs; see session 2.)

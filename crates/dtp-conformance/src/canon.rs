@@ -73,13 +73,18 @@ fn wire_of(node: &Value) -> Option<String> {
 /// subject, edges by event id, numeric ids replaced by subjects.
 pub fn canon_view(view: &Value) -> Value {
     let no_nodes = Vec::new();
+    let mut out_nodes = Map::new();
     let nodes = match view.get("nodes") {
         Some(Value::Array(n)) => n,
+        // Expectations may key nodes by subject already.
+        Some(Value::Object(keyed)) if view.get("edges").is_some() => {
+            out_nodes = keyed.clone();
+            &no_nodes
+        }
         None if view.get("edges").is_some() => &no_nodes,
         _ => return view.clone(),
     };
     let mut by_id: std::collections::HashMap<String, String> = std::collections::HashMap::new();
-    let mut out_nodes = Map::new();
     for n in nodes {
         let Some(wire) = wire_of(n) else { continue };
         if let Some(id) = n.get("id") {
@@ -200,9 +205,8 @@ pub fn canonicalize(value: &Value) -> Value {
                     }
                 }
             }
-            if map.contains_key("edges")
-                && (map.contains_key("centerId") || map.contains_key("center"))
-            {
+            // A neighborhood result, or an expectation naming only its edges.
+            if map.get("edges").is_some_and(Value::is_array) {
                 // Neighborhood: numeric `centerId` becomes the center's subject.
                 if let Some(center_id) = map.get("centerId") {
                     let center = map["nodes"]

@@ -201,6 +201,8 @@ pub struct Walker<'g> {
     pub contrib: HashMap<NodeId, Vec<EdgeId>>,
     bound: HashMap<NodeId, BindOutcome>,
     pub scanned: usize,
+    records_upper: usize,
+    records_exact: Option<usize>,
 }
 
 const DEADLINE_CHECK_EVERY: usize = 4096;
@@ -225,6 +227,8 @@ impl<'g> Walker<'g> {
             contrib: HashMap::new(),
             bound: HashMap::new(),
             scanned: 0,
+            records_upper: 0,
+            records_exact: None,
         }
     }
 
@@ -644,8 +648,9 @@ impl<'g> Walker<'g> {
         self.p.budgets.deadline.is_some_and(|d| Instant::now() >= d)
     }
 
-    /// Records the expansion needs at level ℓ (upper bound, deterministic).
-    fn expansion_cost(&self, authors: &[NodeId]) -> usize {
+    /// Upper bound of [`Self::exact_cost`]: every hop-bucket entry plus every
+    /// other outgoing record.
+    fn upper_cost(&self, authors: &[NodeId]) -> usize {
         authors
             .iter()
             .map(|&a| {
@@ -654,8 +659,71 @@ impl<'g> Walker<'g> {
                     .iter()
                     .map(|&b| self.g.bucket_len(Adj::TrustOut, a, b))
                     .sum::<usize>()
+                    + self.g.other_out(a).len()
             })
             .sum()
+    }
+
+    /// Scanned records of wot-model §6.2 for one expansion: one selected
+    /// statement per (author, subject) in the buckets of `Chain(32009, TC)`,
+    /// including subjects that are not hops (posts, other `i`, `e`).
+    fn exact_cost(&self, authors: &[NodeId]) -> usize {
+        let mut subjects: std::collections::HashSet<NodeId> = std::collections::HashSet::new();
+        let mut total = 0;
+        for &a in authors {
+            subjects.clear();
+            for &b in &self.p.hop_buckets {
+                subjects.extend(
+                    self.g
+                        .bucket(Adj::TrustOut, a, b)
+                        .map(|(entry, _)| entry.node()),
+                );
+            }
+            for &e in self.g.other_out(a) {
+                let edge = self.g.edge(e);
+                if edge.kind == KIND_TRUST && self.p.hop_buckets.contains(&edge.bucket) {
+                    subjects.insert(edge.subject);
+                }
+            }
+            total += subjects.len();
+        }
+        total
+    }
+
+    fn expanding_authors(&self, level: u8, skip: Option<NodeId>) -> Vec<NodeId> {
+        self.levels[level as usize]
+            .iter()
+            .copied()
+            .filter(|&a| self.qualifies(a) && (Some(a) != skip || a == self.p.root))
+            .collect()
+    }
+
+    /// Record budget check for expanding `authors` at `level`. The exact
+    /// count is computed only once the cheap upper bound could exceed the
+    /// budget (then for every level so far).
+    fn charge_records(
+        &mut self,
+        level: u8,
+        skip: Option<NodeId>,
+        authors: &[NodeId],
+    ) -> Result<(), TruncReason> {
+        let max = self.p.budgets.max_records;
+        let upper = self.upper_cost(authors);
+        if self.records_exact.is_none() && self.records_upper + upper > max {
+            let prior = (0..level)
+                .map(|l| self.exact_cost(&self.expanding_authors(l, skip)))
+                .sum();
+            self.records_exact = Some(prior);
+        }
+        if let Some(prior) = self.records_exact {
+            let total = prior + self.exact_cost(authors);
+            if total > max {
+                return Err(TruncReason::EdgeBudget);
+            }
+            self.records_exact = Some(total);
+        }
+        self.records_upper += upper;
+        Ok(())
     }
 
     /// Builds level `level + 1` from the frontier at `level`, skipping
@@ -666,15 +734,8 @@ impl<'g> Walker<'g> {
             return Err(TruncReason::TimeBudget);
         }
         let d = level + 1;
-        let authors: Vec<NodeId> = self.levels[level as usize]
-            .iter()
-            .copied()
-            .filter(|&a| self.qualifies(a) && (Some(a) != skip || a == self.p.root))
-            .collect();
-        let cost = self.expansion_cost(&authors);
-        if self.scanned + cost > self.p.budgets.max_records {
-            return Err(TruncReason::EdgeBudget);
-        }
+        let authors = self.expanding_authors(level, skip);
+        self.charge_records(level, skip, &authors)?;
         let mut picks: Vec<(NodeId, NodeId, EdgeId, i8)> = Vec::new();
         for &a in &authors {
             for (peer, e, v) in self.select_out(a, level)? {

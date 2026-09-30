@@ -88,11 +88,40 @@ fn subject_wire(record: &EdgeRecord) -> String {
     format!("{}:{}", record.subject_type.as_str(), record.subject)
 }
 
+fn claim_subjects<'a>(ids: impl IntoIterator<Item = &'a str>) -> Vec<String> {
+    ids.into_iter()
+        .map(|id| format!("i:user:id:{id}"))
+        .collect()
+}
+
+/// Push `changed` subjects of a slot's current winner (resolver-api §
+/// Pushes): a statement lists its subject and its author, a claim lists
+/// `i:user:id:<n>` for each claimed account.
+fn slot_subjects(graph: &Graph, addr: &SlotAddr) -> Vec<String> {
+    if addr.kind == KIND_IDENTITY {
+        return graph
+            .node_id(&addr.pubkey)
+            .and_then(|p| graph.claim_slot(p))
+            .and_then(|s| s.winner.as_ref())
+            .map(|w| claim_subjects(w.twitter_ids.iter().map(|id| &**id)))
+            .unwrap_or_default();
+    }
+    let subject = graph
+        .slot_key(addr.kind, &addr.pubkey, &addr.d)
+        .and_then(|key| graph.slot(&key)?.winner.as_ref()?.edge)
+        .map(|e| graph.node(graph.edge(e).subject).subject().wire_id());
+    subject
+        .into_iter()
+        .chain([format!("p:{}", addr.pubkey)])
+        .collect()
+}
+
 struct Applied {
     ops: Vec<WriteOp>,
     reply: (bool, String),
     result: &'static str,
-    changed: Option<String>,
+    /// Subjects for the push when the graph changed.
+    changed: Option<Vec<String>>,
 }
 
 fn apply_one(graph: &mut Graph, job: &IngestJob) -> Applied {
@@ -105,7 +134,8 @@ fn apply_one(graph: &mut Graph, job: &IngestJob) -> Applied {
                 pubkey: r.pubkey.clone(),
                 d: r.d.clone(),
             };
-            (graph.apply_record(r), addr, subject_wire(r))
+            let changed = vec![subject_wire(r), format!("p:{}", r.pubkey)];
+            (graph.apply_record(r), addr, changed)
         }
         IngestPayload::Claim(c) => {
             let addr = SlotAddr {
@@ -113,7 +143,9 @@ fn apply_one(graph: &mut Graph, job: &IngestJob) -> Applied {
                 pubkey: c.pubkey.clone(),
                 d: String::new(),
             };
-            (graph.apply_claim(c), addr, format!("p:{}", c.pubkey))
+            let mut changed = slot_subjects(graph, &addr);
+            changed.extend(claim_subjects(c.twitter_id.as_deref()));
+            (graph.apply_claim(c), addr, changed)
         }
         IngestPayload::Deletion(d) => return apply_deletion(graph, d),
     };
@@ -207,12 +239,26 @@ fn apply_deletion(graph: &mut Graph, d: &Deletion) -> Applied {
             }
         }
     }
+    affected.retain(|addr| addr.pubkey == d.pubkey);
+    if affected.is_empty() {
+        return Applied {
+            ops: vec![],
+            reply: (
+                false,
+                "blocked: deletion matches no held event of its author".into(),
+            ),
+            result: "blocked",
+            changed: None,
+        };
+    }
+    let mut changed: Vec<String> = affected
+        .iter()
+        .flat_map(|addr| slot_subjects(graph, addr))
+        .collect();
+    changed.push(format!("p:{}", d.pubkey));
     graph.apply_deletion(d);
     let mut ops = Vec::new();
     for addr in affected {
-        if addr.pubkey != d.pubkey {
-            continue;
-        }
         let (winner, floor) = graph.slot_status(addr.kind, &addr.pubkey, &addr.d);
         match (winner, floor) {
             (false, floor) => ops.push(WriteOp::PutSlot {
@@ -234,7 +280,7 @@ fn apply_deletion(graph: &mut Graph, d: &Deletion) -> Applied {
         ops,
         reply: (true, String::new()),
         result: "accepted",
-        changed: Some(format!("p:{}", d.pubkey)),
+        changed: Some(changed),
     }
 }
 
@@ -305,11 +351,13 @@ pub fn run_writer(state: Arc<AppState>, mut rx: mpsc::Receiver<WriterMsg>) {
         let mut ops = Vec::new();
         let mut outcomes = Vec::with_capacity(jobs.len());
         let mut changed: BTreeSet<String> = BTreeSet::new();
+        let mut graph_changed = false;
         for job in &jobs {
             let applied = apply_one(&mut next, job);
             ops.extend(applied.ops);
             if let Some(c) = applied.changed {
-                changed.insert(c);
+                graph_changed = true;
+                changed.extend(c);
             }
             outcomes.push((applied.reply, applied.result));
         }
@@ -319,7 +367,7 @@ pub fn run_writer(state: Arc<AppState>, mut rx: mpsc::Receiver<WriterMsg>) {
                 .metrics
                 .log("error", "event store write failed; batch rejected".into());
         }
-        if committed && !changed.is_empty() {
+        if committed && graph_changed {
             epoch += 1;
             next.set_epoch(epoch);
             if next.delta_entries() > 1_000_000 {

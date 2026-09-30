@@ -163,19 +163,24 @@
     "queries": [
       {
         "type": "neighborhood",
-        "input": { "centerId": "p:@b" },
+        "input": { "centerId": "p:@b", "context": "identity" },
         "expect": { "truncated": false,
           "nodes": { "p:@b": { "depth": 0, "kind": "pubkey" }, "p:@a": { "depth": 1 }, "p:@c": { "depth": 1 }, "i:user:id:5": { "depth": 1, "kind": "twitter_id" } } }
       },
       {
         "type": "neighborhood",
-        "input": { "centerId": "p:@b", "direction": "in" },
+        "input": { "centerId": "p:@b", "direction": "in", "context": "identity" },
         "expect": { "nodes": { "p:@b": { "depth": 0 }, "p:@a": { "depth": 1 } } }
       },
       {
         "type": "neighborhood",
-        "input": { "centerId": "p:@b", "limit": 1 },
+        "input": { "centerId": "p:@b", "limit": 1, "context": "identity" },
         "expect": { "truncated": true, "truncatedReasons": ["neighborhoodLimit"] }
+      },
+      {
+        "type": "neighborhood",
+        "input": { "centerId": "p:@b" },
+        "expect": { "truncated": false, "nodes": { "p:@b": { "depth": 0 } }, "edges": [] }
       }
     ]
   },

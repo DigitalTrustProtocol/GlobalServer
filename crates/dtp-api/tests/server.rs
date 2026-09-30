@@ -315,17 +315,32 @@ async fn ingest_then_resolve_lookup_and_graph_ops() {
         .dtp(
             "n1",
             "graph.neighborhood",
-            json!({ "centerId": format!("p:{}", bob.pubkey()) }),
+            json!({ "centerId": format!("p:{}", bob.pubkey()), "context": "identity" }),
         )
         .await;
-    // alice → bob, bob → carol / user:id:42, and bob's rating arrow to post:id:7.
-    assert_eq!(hood[2]["nodes"].as_array().unwrap().len(), 5, "{hood}");
+    // alice → bob, bob → carol / user:id:42; a person center has no rating arrows.
+    assert_eq!(hood[2]["nodes"].as_array().unwrap().len(), 4, "{hood}");
     assert!(
         hood[2]["edges"]
             .as_array()
             .unwrap()
             .iter()
-            .any(|e| e["kind"] == 32014 && e["value"] == 1)
+            .all(|e| e["kind"] == 32009)
+    );
+    let post = r
+        .dtp(
+            "n2",
+            "graph.neighborhood",
+            json!({ "centerId": "i:post:id:7", "direction": "in" }),
+        )
+        .await;
+    assert!(
+        post[2]["edges"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|e| e["kind"] == 32014 && e["value"] == 1),
+        "a post center draws rating arrows: {post}"
     );
 
     let frontier = r
@@ -549,9 +564,27 @@ async fn membership_list_pushes_and_reads_auth() {
     let push = member.recv_until(|v| v[0] == "DTP-PUSH").await;
     assert_eq!(push[1], "graph");
     let subjects = push[2]["changed"]["subjects"].as_array().unwrap();
-    assert!(
-        subjects.contains(&json!(format!("p:{}", Keys::from_seed("bob").pubkey()))),
-        "{push}"
+    for key in ["bob", "alice"] {
+        assert!(
+            subjects.contains(&json!(format!("p:{}", Keys::from_seed(key).pubkey()))),
+            "statement push lists subject and author: {push}"
+        );
+    }
+    let claim = Keys::from_seed("carol").sign_event(
+        T,
+        KIND_IDENTITY,
+        vec![
+            vec!["i".into(), "twitter:carol".into()],
+            vec!["i".into(), "twitter_id:42".into()],
+        ],
+        "",
+    );
+    assert!(w.event(&claim).await.0);
+    let push = member.recv_until(|v| v[0] == "DTP-PUSH").await;
+    assert_eq!(
+        push[2]["changed"]["subjects"],
+        json!(["i:user:id:42"]),
+        "claim push lists the X account"
     );
 
     // Cancel: an unknown request id is ignored; a completed one too.

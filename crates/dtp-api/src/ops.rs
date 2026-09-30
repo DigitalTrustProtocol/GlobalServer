@@ -107,6 +107,10 @@ pub fn execute(
         "followTrustRed".into(),
         json!(state.config.model.follow_trust_red),
     );
+    // Default score context per query type (resolver-api § Query fields).
+    if op.starts_with("trust.") {
+        layered.insert("context".into(), json!("identity"));
+    }
     let defaults = &merge_defaults(&layered, defaults);
     let ctx = ExecCtx::new(version, limits);
     let result = match op {

@@ -1,0 +1,1137 @@
+{
+  "id": "session-ops-open",
+  "api": "v1",
+  "description": "Open access, empty server. The operations basic-open does not reach: info, rating.batch, lookup.outgoing, lookup.batch, graph.neighborhood (trust and rating arrows, valueFilter), subscribe / unsubscribe with a graph push, NIP-09 a-tag deletion, REQ authors + kinds, and graph.field (capability-gated).",
+  "config": {
+    "auth.reads": "open",
+    "auth.writes": "open",
+    "scopeProfile": "x.com"
+  },
+  "steps": [
+    {
+      "send": [
+        "DTP",
+        "i1",
+        "info",
+        {}
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "i1",
+          {
+            "api": "v1",
+            "model": "dtp-wot/1",
+            "capabilities": {
+              "$type": "array"
+            },
+            "graphVersion": {
+              "$type": "number"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "29c9e10405ece8d7bf5f70afa9900f8778da0a64ce3558a7e9f5f384793b8f0c",
+          "pubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b",
+          "created_at": 1790000000,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "723cccb6464b2015f84a486de348139e468ffa8a1426033797f941086842d73d"
+            ],
+            [
+              "p",
+              "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "e7f7de2a4c56de9f4b109d6614f607afefd06ef721cb5164a61858223178e82349f13246a16803603da6500f5e95d182015152bb67955b0080b5c493d4b922b3"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "29c9e10405ece8d7bf5f70afa9900f8778da0a64ce3558a7e9f5f384793b8f0c",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "37c67dc547bcba090347343c40be3fa05cdb90485f53b205009b6fa8a10ba781",
+          "pubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b",
+          "created_at": 1790000001,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "02a92968fa26c1507f48158923f776276b1bff2559137b3d5ca921ff1a17148d"
+            ],
+            [
+              "p",
+              "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "5603ea40e87e94b2e75a6e312917a64c64bafc456ca2ed11b0050e81eb0a8682d5dd8af2e22b0f07aa127eeeb9f9760f62d0f44bb18ed80c2058aa23ed6a716b"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "37c67dc547bcba090347343c40be3fa05cdb90485f53b205009b6fa8a10ba781",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "93c5bf1f8ed6888a0454442857045e1de28464c58f73591b4587403521d1c774",
+          "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+          "created_at": 1790000002,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "7bd2dc00790b41473f7d06b93d55008065e79b940a34bcc9082039c7f807b886"
+            ],
+            [
+              "p",
+              "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "533443856310694fbf310980682d840d140886d12dd5372870fae40fe7bde2153a45bafbd2fc4211f3f71a303b7bc6b301df6ad293ae4f9ee04008bd72cbc6b1"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "93c5bf1f8ed6888a0454442857045e1de28464c58f73591b4587403521d1c774",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "8bc1731468d38efde3ff8b02fd2d3348c7007943aa4b2ae7591ab24bc454f41a",
+          "pubkey": "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d",
+          "created_at": 1790000003,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "7bd2dc00790b41473f7d06b93d55008065e79b940a34bcc9082039c7f807b886"
+            ],
+            [
+              "p",
+              "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+            ],
+            [
+              "v",
+              "0"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "ce21a8a81f7207bdecd907d43aff2dd3ae7bf0fc56b2d3a64c5f5c4bc5e95f630207a43a57c63ba788035ac2c969576c739fea330856ad0266a663bf64a05844"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "8bc1731468d38efde3ff8b02fd2d3348c7007943aa4b2ae7591ab24bc454f41a",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "c90d1a035b7582aa24c9453e6f6fb8ee1072aa479e0a3338dd302e9e254dd733",
+          "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+          "created_at": 1790000004,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "23e1b9d275e755d2ec9ab1046b9d244421fe8591641ce7793675c481878c2cea"
+            ],
+            [
+              "i",
+              "post:id:2080659774136291424"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "k",
+              "post:id"
+            ]
+          ],
+          "content": "",
+          "sig": "ca2d084a4723ce966c0a37ec5c75431f111e3cbd6f1ebbffe1c58e452d8c573e19b6e155fd235665c24f6e98709598cfee039248a62b54c566ff2a82e486c252"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "c90d1a035b7582aa24c9453e6f6fb8ee1072aa479e0a3338dd302e9e254dd733",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "a0d47d5faa33da76d22255ae828c5fa0a59a8cd37d0fbb270592b3c13a3b7fdc",
+          "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+          "created_at": 1790000005,
+          "kind": 32014,
+          "tags": [
+            [
+              "d",
+              "790a6b352182f4f7a0cf49bc90b5add72e0349fd1f8d836a44acdcd6b3fa5973"
+            ],
+            [
+              "i",
+              "post:id:2080659774136291424"
+            ],
+            [
+              "score",
+              "0.000001"
+            ],
+            [
+              "k",
+              "post:id"
+            ],
+            [
+              "s",
+              "x.com"
+            ]
+          ],
+          "content": "",
+          "sig": "3dac47a67b2d4b22fea6b76255512d261e9a2b4a598b10c763164122ddd5bca5d75ffd1389166943ed2881c63384746da60f7b6dfc5a3f3c549680d8fdb93c7a"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "a0d47d5faa33da76d22255ae828c5fa0a59a8cd37d0fbb270592b3c13a3b7fdc",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "5767634d14c3f74de6cedf7f9625513bb3bf393227914d051ffe5be25af30856",
+          "pubkey": "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d",
+          "created_at": 1790000006,
+          "kind": 32014,
+          "tags": [
+            [
+              "d",
+              "790a6b352182f4f7a0cf49bc90b5add72e0349fd1f8d836a44acdcd6b3fa5973"
+            ],
+            [
+              "i",
+              "post:id:2080659774136291424"
+            ],
+            [
+              "score",
+              "0.000002"
+            ],
+            [
+              "k",
+              "post:id"
+            ],
+            [
+              "s",
+              "x.com"
+            ]
+          ],
+          "content": "",
+          "sig": "7dc0aaed2079baa143c047b17222f38dec095a951f0bffabb3126ee688fbade4f2de7e12e2e9b69b36faf838d26928d036ae794849e248ad9c8619a375f94848"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "5767634d14c3f74de6cedf7f9625513bb3bf393227914d051ffe5be25af30856",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "s1",
+        "session.update",
+        {
+          "defaults": {
+            "rootPubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b",
+            "followTrustThreshold": 75,
+            "followTrustRed": 25,
+            "bounds": {
+              "maxDepth": 4
+            }
+          }
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "s1",
+          {
+            "defaults": {
+              "rootPubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "note": "Neutral is counted evidence, not a hop",
+      "send": [
+        "DTP",
+        "q1",
+        "trust.query",
+        {
+          "subject": {
+            "type": "p",
+            "value": "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+          }
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "q1",
+          {
+            "connected": true,
+            "degree": 2,
+            "trust": 1,
+            "neutral": 1,
+            "distrust": 0,
+            "resolution": "trusted",
+            "statements": [
+              {
+                "eventId": "8bc1731468d38efde3ff8b02fd2d3348c7007943aa4b2ae7591ab24bc454f41a",
+                "value": 0,
+                "distance": 1
+              },
+              {
+                "eventId": "93c5bf1f8ed6888a0454442857045e1de28464c58f73591b4587403521d1c774",
+                "value": 1,
+                "distance": 1
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "note": "scores below 0.001",
+      "send": [
+        "DTP",
+        "q2",
+        "rating.query",
+        {
+          "subject": {
+            "type": "i",
+            "value": "post:id:2080659774136291424"
+          }
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "q2",
+          {
+            "degree": 2,
+            "claimCount": 2,
+            "averageScore": 0.0000015,
+            "claims": [
+              {
+                "eventId": "5767634d14c3f74de6cedf7f9625513bb3bf393227914d051ffe5be25af30856",
+                "score": 0.000002
+              },
+              {
+                "eventId": "a0d47d5faa33da76d22255ae828c5fa0a59a8cd37d0fbb270592b3c13a3b7fdc",
+                "score": 0.000001
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "q3",
+        "rating.batch",
+        {
+          "items": [
+            {
+              "key": "post",
+              "subject": {
+                "type": "i",
+                "value": "post:id:2080659774136291424"
+              }
+            },
+            {
+              "key": "unrated",
+              "subject": {
+                "type": "i",
+                "value": "post:id:1"
+              }
+            }
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "q3",
+          {
+            "graphVersion": {
+              "$type": "number"
+            },
+            "results": {
+              "post": {
+                "claimCount": 2,
+                "averageScore": 0.0000015
+              },
+              "unrated": {
+                "claimCount": 0,
+                "degree": 0
+              }
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "l1",
+        "lookup.outgoing",
+        {
+          "keys": [
+            "p:e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+          ],
+          "kinds": [
+            32009,
+            32014
+          ],
+          "contextMatch": "any"
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "l1",
+          {
+            "items": [
+              {
+                "eventId": "a0d47d5faa33da76d22255ae828c5fa0a59a8cd37d0fbb270592b3c13a3b7fdc",
+                "kind": 32014,
+                "score": 0.000001
+              },
+              {
+                "eventId": "c90d1a035b7582aa24c9453e6f6fb8ee1072aa479e0a3338dd302e9e254dd733",
+                "kind": 32009,
+                "value": 1,
+                "context": ""
+              },
+              {
+                "eventId": "93c5bf1f8ed6888a0454442857045e1de28464c58f73591b4587403521d1c774",
+                "kind": 32009,
+                "value": 1,
+                "context": "identity"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "l2",
+        "lookup.batch",
+        {
+          "queries": [
+            {
+              "id": "in",
+              "op": "incoming",
+              "params": {
+                "keys": [
+                  "p:58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+                ],
+                "context": "identity"
+              }
+            },
+            {
+              "id": "count",
+              "op": "counts",
+              "params": {
+                "keys": [
+                  "i:post:id:2080659774136291424"
+                ],
+                "direction": "incoming",
+                "kinds": [
+                  32014
+                ]
+              }
+            },
+            {
+              "id": "bad",
+              "op": "incoming",
+              "params": {
+                "keys": [
+                  "nope"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "l2",
+          {
+            "results": {
+              "in": {
+                "items": [
+                  {
+                    "eventId": "8bc1731468d38efde3ff8b02fd2d3348c7007943aa4b2ae7591ab24bc454f41a"
+                  },
+                  {
+                    "eventId": "93c5bf1f8ed6888a0454442857045e1de28464c58f73591b4587403521d1c774"
+                  }
+                ]
+              },
+              "count": {
+                "counts": {
+                  "i:post:id:2080659774136291424": {
+                    "ratings": 2
+                  }
+                }
+              }
+            },
+            "errors": {
+              "bad": {
+                "$prefix": "invalid:"
+              }
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "note": "person center, context identity (buckets identity and general): trust edges both ways, no rating arrows",
+      "send": [
+        "DTP",
+        "n1",
+        "graph.neighborhood",
+        {
+          "centerId": "p:e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+          "context": "identity"
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "n1",
+          {
+            "truncated": false,
+            "nodes": {
+              "$unordered": [
+                {
+                  "subject": {
+                    "type": "p",
+                    "value": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+                  },
+                  "depth": 0
+                },
+                {
+                  "subject": {
+                    "type": "p",
+                    "value": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b"
+                  },
+                  "depth": 1
+                },
+                {
+                  "subject": {
+                    "type": "p",
+                    "value": "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+                  },
+                  "depth": 1
+                },
+                {
+                  "subject": {
+                    "type": "i",
+                    "value": "post:id:2080659774136291424"
+                  },
+                  "depth": 1
+                }
+              ]
+            },
+            "edges": {
+              "$unordered": [
+                {
+                  "eventId": "29c9e10405ece8d7bf5f70afa9900f8778da0a64ce3558a7e9f5f384793b8f0c",
+                  "value": 1,
+                  "context": "identity",
+                  "depth": 1
+                },
+                {
+                  "eventId": "93c5bf1f8ed6888a0454442857045e1de28464c58f73591b4587403521d1c774",
+                  "value": 1,
+                  "context": "identity",
+                  "depth": 1
+                },
+                {
+                  "eventId": "c90d1a035b7582aa24c9453e6f6fb8ee1072aa479e0a3338dd302e9e254dd733",
+                  "value": 1,
+                  "context": "",
+                  "depth": 1
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "note": "post center: Alice has a trust edge, so only Carol gets a rating arrow (score < 50 draws -1)",
+      "send": [
+        "DTP",
+        "n2",
+        "graph.neighborhood",
+        {
+          "centerId": "i:post:id:2080659774136291424",
+          "direction": "in"
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "n2",
+          {
+            "nodes": {
+              "$unordered": [
+                {
+                  "subject": {
+                    "type": "i",
+                    "value": "post:id:2080659774136291424"
+                  },
+                  "depth": 0
+                },
+                {
+                  "subject": {
+                    "type": "p",
+                    "value": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+                  },
+                  "depth": 1
+                },
+                {
+                  "subject": {
+                    "type": "p",
+                    "value": "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d"
+                  },
+                  "depth": 1
+                }
+              ]
+            },
+            "edges": {
+              "$unordered": [
+                {
+                  "eventId": "c90d1a035b7582aa24c9453e6f6fb8ee1072aa479e0a3338dd302e9e254dd733",
+                  "value": 1
+                },
+                {
+                  "eventId": "5767634d14c3f74de6cedf7f9625513bb3bf393227914d051ffe5be25af30856",
+                  "value": -1,
+                  "context": ""
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "note": "valueFilter distrust drops the trust edge first, so Alice gets a rating arrow too",
+      "send": [
+        "DTP",
+        "n3",
+        "graph.neighborhood",
+        {
+          "centerId": "i:post:id:2080659774136291424",
+          "direction": "in",
+          "valueFilter": "distrust"
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "n3",
+          {
+            "nodes": {
+              "$unordered": [
+                {
+                  "subject": {
+                    "type": "i",
+                    "value": "post:id:2080659774136291424"
+                  },
+                  "depth": 0
+                },
+                {
+                  "subject": {
+                    "type": "p",
+                    "value": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+                  },
+                  "depth": 1
+                },
+                {
+                  "subject": {
+                    "type": "p",
+                    "value": "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d"
+                  },
+                  "depth": 1
+                }
+              ]
+            },
+            "edges": {
+              "$unordered": [
+                {
+                  "eventId": "a0d47d5faa33da76d22255ae828c5fa0a59a8cd37d0fbb270592b3c13a3b7fdc",
+                  "value": -1
+                },
+                {
+                  "eventId": "5767634d14c3f74de6cedf7f9625513bb3bf393227914d051ffe5be25af30856",
+                  "value": -1
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "note": "capability-gated: a server without graph.field answers unsupported",
+      "requires": [
+        "graph.field"
+      ],
+      "send": [
+        "DTP",
+        "g1",
+        "graph.field",
+        {}
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "g1",
+          {
+            "graphVersion": {
+              "$type": "number"
+            },
+            "completeDepth": {
+              "$type": "number"
+            },
+            "levels": {
+              "$type": "array"
+            }
+          }
+        ]
+      ],
+      "otherwise": [
+        [
+          "DTP-ERR",
+          "g1",
+          "unsupported",
+          {
+            "$type": "string"
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "u1",
+        "subscribe",
+        {
+          "topics": [
+            "graph"
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "u1",
+          {
+            "topics": [
+              "graph"
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "note": "a graph push follows the write; OK and push may arrive in either order",
+      "send": [
+        "EVENT",
+        {
+          "id": "1f9756aa8f585f6c5b23afb3c707979b31ab0117c5ecc947b6e817c5860c4fc4",
+          "pubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b",
+          "created_at": 1790000020,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "0c79e134b217b9a67631b0543a86619991bf5ca8fb1e29791f60444e430ae126"
+            ],
+            [
+              "p",
+              "3ed34a69d0f2398e255b820a7dc88c1650e0f8fdcdc1359d9f21cd35c3b5dbe9"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "2fb9b021fd0f02a32cdac6bb0e774821e1bf61b60b80f460dd24dcd327c4a75d476e14730866fbf9069e232573e5e1d747b613b4eb229d0a5622cac2589dc72a"
+        }
+      ],
+      "unordered": true,
+      "expect": [
+        [
+          "OK",
+          "1f9756aa8f585f6c5b23afb3c707979b31ab0117c5ecc947b6e817c5860c4fc4",
+          true,
+          ""
+        ],
+        [
+          "DTP-PUSH",
+          "graph",
+          {
+            "graphVersion": {
+              "$type": "number"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "u2",
+        "unsubscribe",
+        {
+          "topics": [
+            "graph"
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "u2",
+          {
+            "topics": []
+          }
+        ]
+      ]
+    },
+    {
+      "note": "unknown topic",
+      "send": [
+        "DTP",
+        "u3",
+        "subscribe",
+        {
+          "topics": [
+            "nope"
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "DTP-ERR",
+          "u3",
+          "invalid",
+          {
+            "$type": "string"
+          }
+        ]
+      ]
+    },
+    {
+      "note": "NIP-09 a-tag deletion clears the slot",
+      "send": [
+        "EVENT",
+        {
+          "id": "b3f1b47288b1f44d0ecd06835dc8c5ce831e8e626cee2a6a60fe5f81f76d8294",
+          "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+          "created_at": 1790000030,
+          "kind": 5,
+          "tags": [
+            [
+              "a",
+              "32009:e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada:23e1b9d275e755d2ec9ab1046b9d244421fe8591641ce7793675c481878c2cea"
+            ],
+            [
+              "k",
+              "32009"
+            ]
+          ],
+          "content": "",
+          "sig": "0d87df1a612956fae5af17f0981cf52488b8840b6870b4562648c46eb397b919912b6bec304b9b73ecf15c25ed7b59b31e763ccce4fa0b560a1e32d6f22fd506"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "b3f1b47288b1f44d0ecd06835dc8c5ce831e8e626cee2a6a60fe5f81f76d8294",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "note": "deleted slot refuses a re-push",
+      "send": [
+        "EVENT",
+        {
+          "id": "c90d1a035b7582aa24c9453e6f6fb8ee1072aa479e0a3338dd302e9e254dd733",
+          "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+          "created_at": 1790000004,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "23e1b9d275e755d2ec9ab1046b9d244421fe8591641ce7793675c481878c2cea"
+            ],
+            [
+              "i",
+              "post:id:2080659774136291424"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "k",
+              "post:id"
+            ]
+          ],
+          "content": "",
+          "sig": "ca2d084a4723ce966c0a37ec5c75431f111e3cbd6f1ebbffe1c58e452d8c573e19b6e155fd235665c24f6e98709598cfee039248a62b54c566ff2a82e486c252"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "c90d1a035b7582aa24c9453e6f6fb8ee1072aa479e0a3338dd302e9e254dd733",
+          false,
+          {
+            "$prefix": "blocked:"
+          }
+        ]
+      ]
+    },
+    {
+      "send": [
+        "DTP",
+        "l3",
+        "lookup.outgoing",
+        {
+          "keys": [
+            "p:e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+          ],
+          "contextMatch": "any"
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "l3",
+          {
+            "items": [
+              {
+                "eventId": "93c5bf1f8ed6888a0454442857045e1de28464c58f73591b4587403521d1c774"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "note": "REQ authors + kinds",
+      "send": [
+        "REQ",
+        "r1",
+        {
+          "authors": [
+            "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+          ],
+          "kinds": [
+            32009
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "EVENT",
+          "r1",
+          {
+            "id": "93c5bf1f8ed6888a0454442857045e1de28464c58f73591b4587403521d1c774",
+            "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+            "created_at": 1790000002,
+            "kind": 32009,
+            "tags": [
+              [
+                "d",
+                "7bd2dc00790b41473f7d06b93d55008065e79b940a34bcc9082039c7f807b886"
+              ],
+              [
+                "p",
+                "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+              ],
+              [
+                "v",
+                "1"
+              ],
+              [
+                "c",
+                "identity"
+              ]
+            ],
+            "content": "",
+            "sig": "533443856310694fbf310980682d840d140886d12dd5372870fae40fe7bde2153a45bafbd2fc4211f3f71a303b7bc6b301df6ad293ae4f9ee04008bd72cbc6b1"
+          }
+        ],
+        [
+          "EOSE",
+          "r1"
+        ]
+      ]
+    },
+    {
+      "send": [
+        "REQ",
+        "r2",
+        {
+          "authors": [
+            "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+          ],
+          "kinds": [
+            32014
+          ]
+        }
+      ],
+      "expect": [
+        [
+          "EVENT",
+          "r2",
+          {
+            "id": "a0d47d5faa33da76d22255ae828c5fa0a59a8cd37d0fbb270592b3c13a3b7fdc",
+            "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+            "created_at": 1790000005,
+            "kind": 32014,
+            "tags": [
+              [
+                "d",
+                "790a6b352182f4f7a0cf49bc90b5add72e0349fd1f8d836a44acdcd6b3fa5973"
+              ],
+              [
+                "i",
+                "post:id:2080659774136291424"
+              ],
+              [
+                "score",
+                "0.000001"
+              ],
+              [
+                "k",
+                "post:id"
+              ],
+              [
+                "s",
+                "x.com"
+              ]
+            ],
+            "content": "",
+            "sig": "3dac47a67b2d4b22fea6b76255512d261e9a2b4a598b10c763164122ddd5bca5d75ffd1389166943ed2881c63384746da60f7b6dfc5a3f3c549680d8fdb93c7a"
+          }
+        ],
+        [
+          "EOSE",
+          "r2"
+        ]
+      ]
+    }
+  ]
+}

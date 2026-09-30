@@ -20,8 +20,15 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 cargo run -p dtp-server -- --config dtp-global.toml      # resolver
 cargo run -p dtp-sync-server -- --config dtp-sync.toml   # Sync Server
-cargo test -p dtp-conformance -- --nocapture             # corpus report
+cargo test -p dtp-conformance -- --nocapture             # corpus + session report
+$env:DTP_CORPUS_STRICT="1"; cargo test -p dtp-conformance  # fail on any ../TrustGraph miss
+node interop/resolver-client.mjs                         # optional: sessions via @dtp/resolver-client
 ```
+
+Local pins (`tests/cases`, `tests/sessions`) must always pass. The
+`../TrustGraph` corpus and sessions are report-only unless
+`DTP_CORPUS_STRICT=1`. Gap cases (`gap:*`) assert `expectModel`; session
+steps gate on `requires` / `otherwise` like the TS runner.
 
 All three checks must be green before every commit. CI runs the same on
 Ubuntu (`.github/workflows/ci.yml`).
@@ -61,7 +68,8 @@ libraries it crashes at process start on `windows-gnu`.
   checks its budgets cooperatively.
 - Privacy: never log subjects, roots, or message bodies.
 - Tests for every behaviour change; conformance cases live in
-  `tests/cases/` in the corpus format of `conformance.md`.
+  `tests/cases/` in the corpus format of `conformance.md`; session scripts
+  are pinned in `tests/sessions/` (copies of `../TrustGraph/corpus/sessions`).
 
 ## Specs
 

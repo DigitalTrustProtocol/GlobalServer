@@ -251,10 +251,16 @@ name = "dtp-conformance"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "dtp-api",
  "dtp-graph",
  "dtp-model",
  "dtp-resolve",
+ "dtp-store",
+ "futures-util",
  "serde_json",
+ "tempfile",
+ "tokio",
+ "tokio-tungstenite 0.26.2",
 ]
 
 [[package]]

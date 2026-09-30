@@ -353,15 +353,6 @@ impl Conn {
         if !dtp_protocol::is_ingest_kind(event.kind) {
             return reject(self, "blocked: kind not accepted".into(), "blocked");
         }
-        if dtp_model::hex32(&event.id).is_some_and(|raw| state.graph.load().has_id(&raw)) {
-            state.metrics.ingest(kind, "duplicate", Some("duplicate"));
-            state.metrics.writer_event(self.id, false);
-            return self.out.text(dtp_protocol::ok(
-                &event.id,
-                true,
-                "duplicate: already have this event",
-            ));
-        }
         self.pending.fetch_add(1, Ordering::Relaxed);
         state.metrics.pending_oks.fetch_add(1, Ordering::Relaxed);
         let out = self.out.clone();
@@ -379,6 +370,17 @@ impl Conn {
                     let prefix = message.split(':').next().map(str::to_string);
                     state.metrics.ingest(event.kind, result, prefix.as_deref());
                     (ok, message)
+                }
+                // Signatures are checked before slot reduction, so a forged
+                // copy of a stored event is `invalid:`, never `duplicate:`.
+                Ok(_)
+                    if dtp_model::hex32(&event.id)
+                        .is_some_and(|raw| state.graph.load().has_id(&raw)) =>
+                {
+                    state
+                        .metrics
+                        .ingest(event.kind, "duplicate", Some("duplicate"));
+                    (true, "duplicate: already have this event".to_string())
                 }
                 Ok(payload) => {
                     let (reply, answer) = oneshot::channel();
@@ -567,6 +569,19 @@ impl Conn {
                 ));
             }
             op_name if is_graph_op(op_name) => {
+                if self
+                    .cancels
+                    .lock()
+                    .unwrap()
+                    .contains_key(&req_id.to_string())
+                {
+                    metrics.op(op_name, "invalid", None);
+                    return self.out.text(dtp_protocol::dtp_err(
+                        &req_id,
+                        "invalid",
+                        "reqId is already in flight on this connection",
+                    ));
+                }
                 if self.in_flight.load(Ordering::Relaxed) >= self.state.limits.max_in_flight {
                     metrics.op(op_name, "busy", None);
                     return self.out.text(dtp_protocol::dtp_err(

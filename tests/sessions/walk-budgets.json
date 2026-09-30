@@ -1,0 +1,190 @@
+{
+  "id": "session-walk-budgets",
+  "api": "v1",
+  "description": "Server started with maxReachedNodes = 2 (root + Alice). A hit at completeDepth + 1 is exact; a subject beyond it is disconnected and truncated with nodeBudget and completeDepth 1.",
+  "config": {
+    "auth.reads": "open",
+    "auth.writes": "open",
+    "scopeProfile": "x.com",
+    "limits.maxReachedNodes": 2
+  },
+  "requires": [
+    "fixed:G10"
+  ],
+  "steps": [
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "29c9e10405ece8d7bf5f70afa9900f8778da0a64ce3558a7e9f5f384793b8f0c",
+          "pubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b",
+          "created_at": 1790000000,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "723cccb6464b2015f84a486de348139e468ffa8a1426033797f941086842d73d"
+            ],
+            [
+              "p",
+              "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "aeea63a3947e478b6f7b90e79fe9292d1a94e9a26658e249ed9d18b67b676391ddba79da89606a17de00fe99fcf0ab7760767a1da630e92aca76b505604ff5ac"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "29c9e10405ece8d7bf5f70afa9900f8778da0a64ce3558a7e9f5f384793b8f0c",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "780f5a0bce6b81221933dc21f6eb2a9fa3d4a32ab562e2a32349154142c568ca",
+          "pubkey": "e31defa942168cf6d8cec4787a10e2a84be46872e13d292efa50e2dac3c68ada",
+          "created_at": 1790000001,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "7bd2dc00790b41473f7d06b93d55008065e79b940a34bcc9082039c7f807b886"
+            ],
+            [
+              "p",
+              "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "6dcd770553908d0619ff78b776bba1bf1ee919662f3c36d6b1876ee3eb63cc7755bf3c51786ef28dae25c38be6a33c1adc93569a1c872c3e9f232fdad69abe30"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "780f5a0bce6b81221933dc21f6eb2a9fa3d4a32ab562e2a32349154142c568ca",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "send": [
+        "EVENT",
+        {
+          "id": "ad88cc39777041dd560182a5d8423e57a5c7b93b0e6a372d795fa5c902d7c540",
+          "pubkey": "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e",
+          "created_at": 1790000002,
+          "kind": 32009,
+          "tags": [
+            [
+              "d",
+              "02a92968fa26c1507f48158923f776276b1bff2559137b3d5ca921ff1a17148d"
+            ],
+            [
+              "p",
+              "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d"
+            ],
+            [
+              "v",
+              "1"
+            ],
+            [
+              "c",
+              "identity"
+            ]
+          ],
+          "content": "",
+          "sig": "061cc84ca9a4cca7d5abd42cee4bf35c4b896bff324a91b9f2955470accd3e86e627f73e81fa98348fe810c36e742538717ed07282d8658ac50913288dba63a4"
+        }
+      ],
+      "expect": [
+        [
+          "OK",
+          "ad88cc39777041dd560182a5d8423e57a5c7b93b0e6a372d795fa5c902d7c540",
+          true,
+          ""
+        ]
+      ]
+    },
+    {
+      "note": "hit at degree 2 = completeDepth + 1 uses complete levels only",
+      "send": [
+        "DTP",
+        "b1",
+        "trust.query",
+        {
+          "rootPubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b",
+          "subject": {
+            "type": "p",
+            "value": "58f2ec62e78ae4937511fb87db02febe68dd4a3598da7dbe0b83a446cc64848e"
+          }
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "b1",
+          {
+            "connected": true,
+            "degree": 2,
+            "trust": 1
+          }
+        ]
+      ]
+    },
+    {
+      "note": "level 2 would reach a third node",
+      "send": [
+        "DTP",
+        "b2",
+        "trust.query",
+        {
+          "rootPubkey": "ab5efe06fd57e45f5568f9bb0fc203e307cc6d4892b4f85eb449db1d9e2c547b",
+          "subject": {
+            "type": "p",
+            "value": "b8a41bb7ccd6d09174f14fe56a8ee4013d96a1dc4c251c7fe507b95b1962070d"
+          }
+        }
+      ],
+      "expect": [
+        [
+          "DTP-OK",
+          "b2",
+          {
+            "connected": false,
+            "degree": 0,
+            "statements": [],
+            "truncated": true,
+            "truncatedReasons": [
+              "nodeBudget"
+            ],
+            "completeDepth": 1
+          }
+        ]
+      ]
+    }
+  ]
+}
