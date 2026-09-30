@@ -1,0 +1,56 @@
+# dtp-global.toml: resolver configuration (specs/api-privacy-operations.md).
+# Copy to dtp-global.toml. Secrets never go here: the server key comes from
+# DTP_SERVER_KEY, server.key_file, or <data_dir>/server.key.
+# Sections retention / memory / residency / limits are accepted but not
+# implemented yet (reported under notImplemented on the admin config page).
+
+[server]
+listen = "127.0.0.1:3880"
+instance_name = "dtp-global"
+description = "DTP Global Server: Web-of-Trust resolver (kinds 32009, 32014, 10011)"
+allowed_origins = ["*"]
+allowed_hosts = ["*"]
+
+[model]
+scope_profile = "x.com"
+binding_mode = "lenient"
+follow_trust_threshold = 75
+follow_trust_red = 25
+
+[auth]
+reads = "open"
+writes = "members"
+admins = []
+membership_source = "nip43"
+members = []
+
+[ingest]
+max_pending_oks = 5000
+max_writer_connections = 8
+queue_size = 20000
+max_event_bytes = 65536
+
+[guardrails]
+operation_deadline_ms = 250
+batch_deadline_ms = 500
+max_depth = 6
+max_reached_nodes = 5000000
+max_walk_records = 50000000
+max_statement_limit = 500
+max_path_nodes = 1000
+max_neighborhood_limit = 500
+max_batch_items = 200
+max_lookup_keys = 50
+max_lookup_page = 500
+max_lookup_batch = 50
+max_lookup_records = 5000000
+max_in_flight = 16
+max_connections = 4
+max_unsent_output = 8388608
+max_message_length = 4194304
+
+[storage]
+data_dir = "data"
+
+[admin]
+auth = "local"

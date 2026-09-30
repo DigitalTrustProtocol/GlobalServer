@@ -461,6 +461,66 @@ impl Graph {
         self.ids.contains_key(id)
     }
 
+    /// Author of the kind 10011 winner with this id.
+    pub fn claim_of_id(&self, id: &[u8; 32]) -> Option<NodeId> {
+        match self.ids.get(id)? {
+            IdRef::Claim(p) => Some(*p),
+            IdRef::Slot(_) => None,
+        }
+    }
+
+    /// Whether a deletion tombstone is pending for this id.
+    pub fn is_tombstoned(&self, id: &[u8; 32]) -> bool {
+        self.tombstones.contains_key(id)
+    }
+
+    /// Slot key for `(kind, pubkey, d)` if the author is known.
+    pub fn slot_key(&self, kind: u32, pubkey: &str, d: &str) -> Option<SlotKey> {
+        Some(SlotKey {
+            kind,
+            author: self.node_id(pubkey)?,
+            d: DKey::parse(d),
+        })
+    }
+
+    /// `(winner present, floor)` of a slot; kind 10011 reads the claim slot.
+    pub fn slot_status(&self, kind: u32, pubkey: &str, d: &str) -> (bool, Option<u64>) {
+        if kind == KIND_IDENTITY {
+            let slot = self.node_id(pubkey).and_then(|p| self.claim_slots.get(&p));
+            return slot.map_or((false, None), |s| (s.winner.is_some(), s.floor));
+        }
+        let state = self
+            .slot_key(kind, pubkey, d)
+            .and_then(|k| self.slots.get(&k));
+        state.map_or((false, None), |s| (s.winner.is_some(), s.floor))
+    }
+
+    /// Restores a NIP-09 floor at start-up.
+    pub fn restore_floor(&mut self, kind: u32, pubkey: &str, d: &str, floor: u64) {
+        let author = self.intern_pubkey(pubkey);
+        if kind == KIND_IDENTITY {
+            let slot = self.claim_slots.entry(author).or_default();
+            slot.floor = Some(slot.floor.map_or(floor, |f| f.max(floor)));
+            return;
+        }
+        let key = SlotKey {
+            kind,
+            author,
+            d: DKey::parse(d),
+        };
+        let mut state = self.slots.get(&key).cloned().unwrap_or_default();
+        self.set_floor(&mut state, floor);
+        self.slots.insert(key, state);
+    }
+
+    /// Restores a pending tombstone at start-up.
+    pub fn restore_tombstone(&mut self, id: &str, deleter: &str) {
+        if let Some(id) = dtp_model::hex32(id) {
+            let deleter = self.intern_pubkey(deleter);
+            self.tombstones.insert(id, deleter);
+        }
+    }
+
     pub fn stats(&self) -> GraphStats {
         let base = &self.base;
         let delta_bytes: usize = [Adj::TrustIn, Adj::TrustOut, Adj::RatingIn]

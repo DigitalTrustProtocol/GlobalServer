@@ -1,12 +1,31 @@
 [package]
 name = "dtp-api"
-description = "WebSocket endpoint"
+description = "Resolver protocol v1 over one WebSocket (NIP-01 framing, NIP-42, NIP-43), NIP-11, health, admin telemetry"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+dtp-model.workspace = true
+dtp-graph.workspace = true
+dtp-resolve.workspace = true
+dtp-store.workspace = true
+dtp-protocol.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+axum.workspace = true
+futures-util.workspace = true
+arc-swap.workspace = true
+tracing.workspace = true
+hex.workspace = true
+rand.workspace = true
+anyhow.workspace = true
+
+[dev-dependencies]
+tokio-tungstenite.workspace = true
+tempfile.workspace = true
 
 [lints]
 workspace = true

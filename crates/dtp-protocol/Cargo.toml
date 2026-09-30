@@ -1,12 +1,15 @@
 [package]
 name = "dtp-protocol"
-description = "NIP-01 framing and DTP messages"
+description = "NIP-01 framing, NIP-42 auth, NIP-43 membership, NIP-11 document, REQ filters, DTP messages"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+dtp-model.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 
 [lints]
 workspace = true

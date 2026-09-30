@@ -26,6 +26,24 @@ cargo test -p dtp-conformance -- --nocapture             # corpus report
 All three checks must be green before every commit. CI runs the same on
 Ubuntu (`.github/workflows/ci.yml`).
 
+### Windows with the GNU toolchain (no MSVC build tools)
+
+Newer `windows-sys` / `getrandom` link through `raw-dylib`, which needs a
+`dlltool`. The GNU `dlltool` shipped with `rust-mingw` cannot run (no
+assembler); LLVM's works:
+
+```powershell
+rustup component add llvm-tools
+$bin = "$env:USERPROFILE\.rustup\toolchains\stable-x86_64-pc-windows-gnu\lib\rustlib\x86_64-pc-windows-gnu\bin"
+New-Item -ItemType Directory -Force "$env:USERPROFILE\.cargo\llvm-dlltool"
+New-Item -ItemType HardLink -Path "$env:USERPROFILE\.cargo\llvm-dlltool\dlltool.exe" -Target "$bin\llvm-ar.exe"
+Copy-Item "$bin\libgcc_s_seh-1.dll","$bin\libwinpthread-1.dll" "$env:USERPROFILE\.cargo\llvm-dlltool"
+$env:Path = "$env:USERPROFILE\.cargo\llvm-dlltool;" + $env:Path   # before running cargo
+```
+
+Do not enable tokio's `parking_lot` feature (or `full`): with these import
+libraries it crashes at process start on `windows-gnu`.
+
 ## Rules
 
 - **Specs first.** Behaviour comes from `TrustGraph/specs` (model
