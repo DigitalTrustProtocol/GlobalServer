@@ -96,6 +96,18 @@ pub fn execute(
     let limits = &state.limits;
     let now = state.server_now();
     let version = graph.epoch();
+    // Server defaults (config `[model]`) sit under the session defaults.
+    let mut layered = Map::new();
+    layered.insert("bindingMode".into(), json!(state.config.model.binding_mode));
+    layered.insert(
+        "followTrustThreshold".into(),
+        json!(state.config.model.follow_trust_threshold),
+    );
+    layered.insert(
+        "followTrustRed".into(),
+        json!(state.config.model.follow_trust_red),
+    );
+    let defaults = &merge_defaults(&layered, defaults);
     let ctx = ExecCtx::new(version, limits);
     let result = match op {
         "info" => {
