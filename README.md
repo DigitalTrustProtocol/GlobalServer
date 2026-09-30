@@ -8,7 +8,7 @@ trust (`32009`), rating (`32014`), and identity-claim (`10011`) events; the
 resolver answers queries for any root over long-lived WebSocket connections,
 with multi-threaded, guard-railed resolution.
 
-Status: **design** (specs only, no code yet) · 2026-09-30
+Status: **resolver and Sync Server built** (RocksDB event store) · 2026-10-01
 
 ## Strictly a WoT graph
 
