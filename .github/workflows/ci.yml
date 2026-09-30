@@ -21,8 +21,12 @@ jobs:
       # which loads libclang. No CMake needed.
       - name: native build deps
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends g++ clang libclang-dev
+      # `toolchain: stable` is required. Without it this action reads
+      # rust-toolchain.toml and tries to install the Windows MSVC toolchain
+      # on Linux. RUSTUP_TOOLCHAIN above keeps later cargo calls on Linux stable too.
       - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: stable
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
       - name: fmt
