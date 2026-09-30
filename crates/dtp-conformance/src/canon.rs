@@ -59,6 +59,9 @@ pub fn expand_str(s: &str) -> String {
 
 fn wire_of(node: &Value) -> Option<String> {
     let s = node.get("subject")?;
+    if let Some(wire) = s.as_str() {
+        return Some(wire.to_string());
+    }
     Some(format!(
         "{}:{}",
         s.get("type")?.as_str()?,
@@ -69,8 +72,11 @@ fn wire_of(node: &Value) -> Option<String> {
 /// Canonical view of a `{ nodes, edges }` graph shape: nodes keyed by wire
 /// subject, edges by event id, numeric ids replaced by subjects.
 pub fn canon_view(view: &Value) -> Value {
-    let Some(nodes) = view.get("nodes").and_then(Value::as_array) else {
-        return view.clone();
+    let no_nodes = Vec::new();
+    let nodes = match view.get("nodes") {
+        Some(Value::Array(n)) => n,
+        None if view.get("edges").is_some() => &no_nodes,
+        _ => return view.clone(),
     };
     let mut by_id: std::collections::HashMap<String, String> = std::collections::HashMap::new();
     let mut out_nodes = Map::new();
@@ -150,7 +156,12 @@ pub fn canonicalize(value: &Value) -> Value {
                     "computedAt" | "graphVersion" | "instanceId" => {}
                     "statements" | "claims" => {
                         let mut items: Vec<Value> = v.as_array().cloned().unwrap_or_default();
-                        if items.iter().all(Value::is_object) {
+                        // Results are sorted into P3 order; partial expectations
+                        // (without the sort keys) are already written in it.
+                        if items
+                            .iter()
+                            .all(|i| i.get("createdAt").is_some() && i.get("eventId").is_some())
+                        {
                             sort_evidence(&mut items);
                         }
                         out.insert(
@@ -158,10 +169,18 @@ pub fn canonicalize(value: &Value) -> Value {
                             Value::Array(items.iter().map(canonicalize).collect()),
                         );
                     }
-                    "sourceEventIds" => {
+                    "sourceEventIds" | "reasons" => {
                         let mut ids: Vec<Value> = v.as_array().cloned().unwrap_or_default();
                         ids.sort_by(|a, b| a.as_str().cmp(&b.as_str()));
                         out.insert(k.clone(), Value::Array(ids));
+                    }
+                    "authors"
+                        if v.as_array()
+                            .is_some_and(|a| a.iter().all(|x| x.get("pubkey").is_some())) =>
+                    {
+                        let mut authors: Vec<Value> = v.as_array().cloned().unwrap_or_default();
+                        authors.sort_by(|a, b| a["pubkey"].as_str().cmp(&b["pubkey"].as_str()));
+                        out.insert(k.clone(), Value::Array(authors));
                     }
                     "pathView" => {
                         out.insert(k.clone(), canon_view(v));
@@ -181,14 +200,23 @@ pub fn canonicalize(value: &Value) -> Value {
                     }
                 }
             }
-            if map.contains_key("nodes")
-                && map.contains_key("edges")
-                && map.contains_key("centerId")
+            if map.contains_key("edges")
+                && (map.contains_key("centerId") || map.contains_key("center"))
             {
+                // Neighborhood: numeric `centerId` becomes the center's subject.
+                if let Some(center_id) = map.get("centerId") {
+                    let center = map["nodes"]
+                        .as_array()
+                        .into_iter()
+                        .flatten()
+                        .find(|n| n.get("id") == Some(center_id))
+                        .and_then(wire_of);
+                    out.insert("center".into(), json!(center));
+                    out.remove("centerId");
+                }
                 let view = canon_view(value);
                 out.insert("nodes".into(), view["nodes"].clone());
                 out.insert("edges".into(), view["edges"].clone());
-                out.remove("centerId");
             }
             sort_keys(Value::Object(out))
         }
@@ -230,7 +258,8 @@ pub fn compare(expected: &Value, actual: Option<&Value>, path: &str, errors: &mu
         let absent_ok = matches!(expected, Value::Null)
             || (path.ends_with(".neutral") && expected.as_u64() == Some(0))
             || (path.ends_with(".truncated") && expected.as_bool() == Some(false))
-            || (path.ends_with(".statementsTruncated") && expected.as_bool() == Some(false));
+            || (path.ends_with(".statementsTruncated") && expected.as_bool() == Some(false))
+            || (path.ends_with(".nextCursor") && expected.as_bool() == Some(false));
         if !absent_ok {
             errors.push(format!("{path}: missing (expected {expected})"));
         }
@@ -268,6 +297,18 @@ pub fn compare(expected: &Value, actual: Option<&Value>, path: &str, errors: &mu
             );
             if (e - a).abs() > 1e-9 {
                 errors.push(format!("{path}: {a} != expected {e}"));
+            }
+        }
+        // Lookup items may be listed as event ids.
+        (Value::String(e), Value::Object(a)) if a.contains_key("eventId") => {
+            if a["eventId"].as_str() != Some(e.as_str()) {
+                errors.push(format!("{path}.eventId: {} != expected {e}", a["eventId"]));
+            }
+        }
+        // `nextCursor` is compared as "present or not".
+        (Value::Bool(want), Value::String(_)) if path.ends_with(".nextCursor") => {
+            if !want {
+                errors.push(format!("{path}: present (expected none)"));
             }
         }
         (e, a) => {

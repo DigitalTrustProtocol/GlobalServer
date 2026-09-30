@@ -68,6 +68,7 @@ pub fn parse_deletion(event: &Event, verify: bool) -> Result<Deletion, Vec<Valid
             (Some("e"), Some(id)) if is_hex64(id) => {
                 targets.push(DeletionTarget::Event(id.clone()));
             }
+            (Some("e"), _) => return Err(err("e-tag", "e tags must hold a 64-hex event id")),
             (Some("a"), Some(addr)) => {
                 let mut parts = addr.splitn(3, ':');
                 let kind = parts.next().and_then(|k| k.parse::<u32>().ok());
@@ -90,9 +91,6 @@ pub fn parse_deletion(event: &Event, verify: bool) -> Result<Deletion, Vec<Valid
         .tags_named("k")
         .filter_map(|t| t.get(1).and_then(|k| k.parse::<u32>().ok()))
         .collect();
-    if targets.is_empty() {
-        return Err(err("no-target", "Deletion names no event or address"));
-    }
     Ok(Deletion {
         id: event.id.clone(),
         pubkey: event.pubkey.clone(),
@@ -154,6 +152,17 @@ mod tests {
         );
 
         let empty = keys.sign_event(10, KIND_DELETION, vec![], "");
-        assert!(parse_deletion(&empty, true).is_err());
+        assert!(
+            !parse_deletion(&empty, true)
+                .unwrap()
+                .may_target_held_kinds()
+        );
+        let malformed = keys.sign_event(
+            10,
+            KIND_DELETION,
+            vec![vec!["e".into(), "nothex".into()]],
+            "",
+        );
+        assert!(parse_deletion(&malformed, true).is_err());
     }
 }

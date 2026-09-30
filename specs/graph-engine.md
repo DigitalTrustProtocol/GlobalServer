@@ -99,6 +99,13 @@ encoding for `32009`: `0` Neutral, `1` Trust, `2` Distrust. A deployment past
 `trust_out` carries no edge ids: a path query finds a hop statement in the
 peer's sorted `trust_in` run by binary search on the author.
 
+> **v1 implementation note (PLAN.md D-tiers, D-trust-out-ids, D-other-out).**
+> The current build keeps two tiers (an immutable base CSR in the final
+> layout plus the RAM delta with dead bits); segment files and `mmap` come
+> next. Its `trust_out` runs still carry edge ids, and non-person outgoing
+> winners (post trust, ratings) have an in-memory per-author index instead of
+> the event store's `by_author` scan.
+
 ### Tie-breaks resolved at write time
 
 Model §4.3 picks one statement when an author has several active records to

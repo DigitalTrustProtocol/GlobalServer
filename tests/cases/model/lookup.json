@@ -194,9 +194,9 @@
         "input": { "roots": ["@alice"], "maxDepth": 4 },
         "expect": { "authors": [
           { "pubkey": "@alice", "depth": 0 },
-          { "pubkey": "@b", "depth": 1, "via": "@f1" },
-          { "pubkey": "@c", "depth": 2, "via": "@f2" },
-          { "pubkey": "@p", "depth": 3, "via": "@f3" }
+          { "pubkey": "@b", "depth": 1, "via": "@alice" },
+          { "pubkey": "@c", "depth": 2, "via": "@b" },
+          { "pubkey": "@p", "depth": 3, "via": "@c" }
         ], "reasons": [] }
       },
       {

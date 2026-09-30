@@ -149,6 +149,15 @@ pure-Rust engine such as `redb`). Column families:
 | `reach` | author | Class, last reached time, slot count |
 | `meta` | string | Schema version, flushed sequence, watermarks |
 
+> **v1 implementation note (PLAN.md D-store).** The first build uses `redb`
+> (GS-D1 still open) with tables `slots`, `by_id`, `by_author`, `log`,
+> `tombstones`, `meta`. Kind `10011` winners live in `slots` under
+> `10011 ‖ author ‖ ""` (the `replaceable` family); the `claims` and `reach`
+> families are not stored yet: claims are rebuilt from the replaceable
+> winners at start-up, and retention classes are not built. A kind `5` that
+> names an id the store does not hold leaves a `tombstones` entry so the
+> event is refused if its author pushes it later.
+
 The event store is on the query path only for `REQ` by id and for outgoing
 lookups of post trust and ratings (`by_author`): walks, hit tests, and every
 other lookup read the graph store; evidence display reads the cold columns.

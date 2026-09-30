@@ -62,9 +62,9 @@ pub fn record_from(v: &Value, index: usize) -> Result<EdgeRecord, String> {
         .ok_or("record without pubkey")?
         .to_lowercase();
     let kind = u64_field(v, &["kind"]).unwrap_or(u64::from(KIND_TRUST)) as u32;
-    let subject = str_field(v, &["subject"])
-        .ok_or("record without subject")?
-        .to_lowercase();
+    let subject = dtp_model::subject::normalize_key(
+        str_field(v, &["subject"]).ok_or("record without subject")?,
+    );
     let subject_type = match str_field(v, &["subjectType"]) {
         Some(t) => SubjectType::parse(t).ok_or(format!("bad subjectType {t}"))?,
         None if dtp_model::is_hex64(&subject) => SubjectType::P,
@@ -93,9 +93,8 @@ pub fn record_from(v: &Value, index: usize) -> Result<EdgeRecord, String> {
         }
         None => str_field(v, &["dTag", "d"])
             .map(str::to_string)
-            .unwrap_or_else(|| {
-                format!("{}:{subject}:{scope_rank}:{context}", subject_type.as_str())
-            }),
+            // Corpus default: "<kind>:<pubkey>:<subjectType>:<subject>:<context>".
+            .unwrap_or_else(|| format!("{}:{subject}:{context}", subject_type.as_str())),
     };
     let value = match v.get("value").or_else(|| v.get("score")) {
         None | Some(Value::Null) => None,
@@ -235,10 +234,24 @@ fn apply_op(setup: &mut Setup, op: &Value, index: usize) -> Result<(), String> {
                 .retain(|x| !(x.root == o.root && x.i_key == o.i_key));
         }
         "delete" => {
-            let pubkey = str_field(body, &["pubkey"])
-                .ok_or("delete without pubkey")?
+            let pubkey = str_field(body, &["author", "pubkey"])
+                .ok_or("delete without author")?
                 .to_lowercase();
             let mut targets = Vec::new();
+            if let Some(id) = str_field(body, &["eventId"]) {
+                targets.push(DeletionTarget::Event(id.to_lowercase()));
+            }
+            if let Some(key) = str_field(body, &["addressKey"]) {
+                let mut parts = key.splitn(3, ':');
+                let kind = parts.next().and_then(|k| k.parse().ok()).unwrap_or(0);
+                let pk = parts.next().unwrap_or("").to_lowercase();
+                let d = parts.next().unwrap_or("").to_string();
+                targets.push(DeletionTarget::Address {
+                    kind,
+                    pubkey: pk,
+                    d,
+                });
+            }
             for e in body
                 .get("e")
                 .and_then(Value::as_array)
@@ -364,8 +377,15 @@ fn run_query(
                 .map_err(|e| format!("invalid input: {e}"))?;
             let mut ctx = ExecCtx::new(0, &limits);
             ctx.own = &setup.own;
-            let nodes = input.get("maxReachedNodes").and_then(Value::as_u64);
-            let records = input.get("maxWalkRecords").and_then(Value::as_u64);
+            let budget = |name: &str| {
+                input
+                    .get("budgets")
+                    .and_then(|b| b.get(name))
+                    .or_else(|| input.get(name))
+                    .and_then(Value::as_u64)
+            };
+            let nodes = budget("maxReachedNodes");
+            let records = budget("maxWalkRecords");
             if nodes.is_some() || records.is_some() {
                 ctx.budgets = Some((
                     nodes.map_or(limits.max_reached_nodes, |n| n as usize),
@@ -577,6 +597,7 @@ fn check_properties(case: &Value, base: &Setup, queries: &[Value], errors: &mut 
                     // Batch = single.
                     if input.get("maxReachedNodes").is_some()
                         || input.get("maxWalkRecords").is_some()
+                        || input.get("budgets").is_some()
                     {
                         continue;
                     }
@@ -732,11 +753,18 @@ pub fn run_model_case(case: &Value) -> CaseOutcome {
             q.get("expect")
         };
         let Some(expect) = expect else { continue };
+        let modes: Vec<&str> = q
+            .get("modes")
+            .and_then(Value::as_array)
+            .map(|m| m.iter().filter_map(Value::as_str).collect())
+            .unwrap_or_default();
         let runs: Vec<(Option<&str>, &Value)> = if is_bind_expect(expect) {
             ["lenient", "strict"]
                 .iter()
                 .filter_map(|m| expect.get(*m).map(|e| (Some(*m), e)))
                 .collect()
+        } else if !modes.is_empty() {
+            modes.iter().map(|m| (Some(*m), expect)).collect()
         } else {
             vec![(None, expect)]
         };

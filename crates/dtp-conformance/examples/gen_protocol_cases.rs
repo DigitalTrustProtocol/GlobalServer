@@ -290,10 +290,10 @@ fn main() {
 
     let other = alice.sign_event(T, 1, vec![], "hello");
     cases.push(case(
-        "protocol-kind1-rejected",
+        "protocol-kind1-blocked",
         &["protocol", "kind"],
         &other,
-        json!({ "valid": false, "errors": ["kind"] }),
+        json!({ "valid": true, "prefix": "blocked", "eligible": false }),
     ));
 
     let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tests/cases/protocol");

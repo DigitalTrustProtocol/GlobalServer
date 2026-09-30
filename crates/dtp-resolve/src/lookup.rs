@@ -254,9 +254,13 @@ fn collect(
     // (group key) -> (bucket pos, edge)
     let mut groups: HashMap<(NodeId, NodeId, u32), (usize, EdgeId)> = HashMap::new();
     let mut raw_rows: Vec<EdgeId> = Vec::new();
+    // `any` has no bucket order: one statement per author by the §4.3
+    // tie-break alone (scopeRank, then newer, then lower id).
+    let any = p.context_match == Some(ContextMatch::Any);
     let mut consider =
         |g: &Graph, group: (NodeId, NodeId, u32), pos: usize, e: EdgeId, scanned: &mut usize| {
             *scanned += 1;
+            let pos = if any { 0 } else { pos };
             let edge = g.edge(e);
             if !p.include_inactive && !edge.is_active_at(p.now) {
                 return;
@@ -622,6 +626,16 @@ pub fn lookup_batch(
     Ok(Value::Object(out))
 }
 
+/// Graph-view polarity: the trust value, or a rating's display value
+/// (`ratingScoreToEdgeValue`: score >= 50 is 1, else -1).
+fn display_value(edge: &EdgeCols) -> i8 {
+    match edge.value {
+        dtp_model::RecordValue::Trust(v) => v,
+        dtp_model::RecordValue::Score(s) if s.0 >= 50_000_000 => 1,
+        dtp_model::RecordValue::Score(_) => -1,
+    }
+}
+
 /// `graph.neighborhood`: incoming + outgoing lookups for one center, shaped
 /// as nodes and edges (node ids are `NodeId`s of this instance).
 pub fn neighborhood(
@@ -662,7 +676,17 @@ pub fn neighborhood(
     }
     let values: Option<Vec<i8>> = match params.get("valueFilter") {
         None | Some(Value::Null) => None,
-        Some(Value::String(s)) if s == "all" => None,
+        Some(Value::String(s)) => match s.as_str() {
+            "all" | "both" => None,
+            "trust" => Some(vec![1]),
+            "distrust" => Some(vec![-1]),
+            "neutral" => Some(vec![0]),
+            _ => {
+                return invalid(
+                    "valueFilter must be all, both, trust, distrust, neutral, or values",
+                );
+            }
+        },
         Some(Value::Number(n)) => match n.as_i64() {
             Some(v @ -1..=1) => Some(vec![v as i8]),
             _ => return invalid("valueFilter must be 1, 0, -1, an array of them, or all"),
@@ -688,6 +712,7 @@ pub fn neighborhood(
     };
     let center_info = g.node(center);
     let key = center_info.subject().wire_id();
+    let value_filter = values.clone();
     let base = LookupParams {
         keys: vec![key],
         kinds: vec![KIND_TRUST],
@@ -707,21 +732,41 @@ pub fn neighborhood(
         cursor: None,
         with_totals: false,
     };
+    // Ratings are drawn as display arrows (never hops): score >= 50 is 1, else -1.
+    let ratings = LookupParams {
+        kinds: vec![KIND_RATING],
+        context: String::new(),
+        context_match: Some(ContextMatch::Exact),
+        values: None,
+        ..base.clone()
+    };
+    let keep_rating = |r: &Row| {
+        value_filter
+            .as_ref()
+            .is_none_or(|vs| vs.contains(&display_value(g.edge(r.edge))))
+    };
     let mut rows: Vec<(Row, bool)> = Vec::new();
+    let mut directions = Vec::new();
     if direction != "out" && direction != "outgoing" {
-        rows.extend(
-            collect(g, &base, Direction::Incoming, &base.keys, limits)
-                .rows
-                .into_iter()
-                .map(|r| (r, true)),
-        );
+        directions.push(Direction::Incoming);
     }
     if direction != "in" && direction != "incoming" && center_info.ty == NodeType::P {
+        directions.push(Direction::Outgoing);
+    }
+    for dir in directions {
+        let incoming = dir == Direction::Incoming;
         rows.extend(
-            collect(g, &base, Direction::Outgoing, &base.keys, limits)
+            collect(g, &base, dir, &base.keys, limits)
                 .rows
                 .into_iter()
-                .map(|r| (r, false)),
+                .map(|r| (r, incoming)),
+        );
+        rows.extend(
+            collect(g, &ratings, dir, &ratings.keys, limits)
+                .rows
+                .into_iter()
+                .filter(|r| keep_rating(r))
+                .map(|r| (r, incoming)),
         );
     }
     rows.sort_by_key(|(r, _)| sort_key(Order::Recent, r));
@@ -740,7 +785,8 @@ pub fn neighborhood(
             "id": r.edge,
             "from": edge.author,
             "to": edge.subject,
-            "value": edge.trust_value().unwrap_or(0),
+            "value": display_value(edge),
+            "kind": edge.kind,
             "context": g.contexts().info(edge.bucket).context.to_string(),
             "eventId": edge.id_hex(),
             "depth": 1,

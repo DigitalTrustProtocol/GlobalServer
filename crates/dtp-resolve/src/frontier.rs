@@ -99,7 +99,7 @@ pub fn frontier(
         root_keys.truncate(max_total);
         add_reason(&mut reasons, "maxTotalAuthors");
     }
-    let mut order: Vec<(String, u8, Option<[u8; 32]>)> =
+    let mut order: Vec<(String, u8, Option<String>)> =
         root_keys.iter().map(|k| (k.clone(), 0, None)).collect();
     let mut found: HashMap<NodeId, Discovered> = HashMap::new();
     let mut found_keys: std::collections::HashSet<String> = root_keys.iter().cloned().collect();
@@ -118,9 +118,10 @@ pub fn frontier(
     }
     let hop_buckets = g.contexts().chain(KIND_TRUST, "identity");
     for depth in 0..=max_depth {
-        // children: pubkey -> (lowest supporting event id, support count)
-        let mut children: BTreeMap<String, (NodeId, [u8; 32], u32)> = BTreeMap::new();
+        // children: pubkey -> (node, lowest supporting author pubkey, support count)
+        let mut children: BTreeMap<String, (NodeId, String, u32)> = BTreeMap::new();
         for &a in &current {
+            let author_key = g.node(a).key.value();
             let mut seen_peer: std::collections::HashSet<NodeId> = std::collections::HashSet::new();
             for &b in &hop_buckets {
                 for (entry, e) in g.bucket(Adj::TrustOut, a, b) {
@@ -148,14 +149,14 @@ pub fn frontier(
                     children
                         .entry(key)
                         .and_modify(|(_, via, support)| {
-                            if edge.id < *via {
-                                *via = edge.id;
+                            if author_key < *via {
+                                *via = author_key.clone();
                             }
                             if first_for_author {
                                 *support += 1;
                             }
                         })
-                        .or_insert((peer, edge.id, 1));
+                        .or_insert((peer, author_key.clone(), 1));
                 }
             }
         }
@@ -165,7 +166,7 @@ pub fn frontier(
             }
             break;
         }
-        let mut next: Vec<(String, (NodeId, [u8; 32], u32))> = children.into_iter().collect();
+        let mut next: Vec<(String, (NodeId, String, u32))> = children.into_iter().collect();
         if next.len() > per_level {
             next.truncate(per_level);
             add_reason(&mut reasons, "maxAuthorsPerLevel");
@@ -199,7 +200,7 @@ pub fn frontier(
             a.insert("pubkey".into(), json!(pubkey));
             a.insert("depth".into(), json!(depth));
             if let Some(v) = via {
-                a.insert("via".into(), json!(hex::encode(v)));
+                a.insert("via".into(), json!(v));
             }
             Value::Object(a)
         })

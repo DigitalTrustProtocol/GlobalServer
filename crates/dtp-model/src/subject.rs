@@ -67,9 +67,9 @@ impl Subject {
         Some(Subject::new(ty, value))
     }
 
-    /// Graph node key: the lowercase subject value (model §3).
+    /// Graph node key (model §3, gap G5 fixed): see [`normalize_key`].
     pub fn node_key(&self) -> String {
-        self.value.to_lowercase()
+        normalize_key(&self.value)
     }
 
     /// Validation error for a published subject, if any.
@@ -84,6 +84,28 @@ impl Subject {
             SubjectType::I => identifier_error(&self.value),
         }
     }
+}
+
+/// Node key of a subject value: lowercased, except the case-sensitive parts
+/// (gap G5): a `web:` URL keeps its path (protocol validation already made
+/// scheme and host canonical) and a `nostr:addr:` identifier keeps its case.
+pub fn normalize_key(value: &str) -> String {
+    if value.starts_with("web:") {
+        return value.to_string();
+    }
+    if let Some(rest) = value.strip_prefix("nostr:addr:") {
+        let mut parts = rest.splitn(3, ':');
+        if let (Some(kind), Some(pubkey), Some(identifier)) =
+            (parts.next(), parts.next(), parts.next())
+        {
+            return format!(
+                "nostr:addr:{}:{}:{identifier}",
+                kind.to_lowercase(),
+                pubkey.to_lowercase()
+            );
+        }
+    }
+    value.to_lowercase()
 }
 
 /// `user:id:<digits>` → the digits.

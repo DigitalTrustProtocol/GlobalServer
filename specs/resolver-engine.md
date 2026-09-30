@@ -239,7 +239,7 @@ onto the clustered storage:
 | --- | --- |
 | `format: path` | Exact walk plus backward trace (model §7.2); rate-limited more tightly than default queries |
 | Rating queries | Same field (hop threshold `G = 1` in the product profile, so a separate field key from trust queries) |
-| Sync frontier | Model §8, parallel per level, sorted and capped; `via` = lowest supporting event id |
+| Sync frontier | Model §8, parallel per level, sorted and capped; `via` = the discovering author (lowest pubkey among the supporting authors of the previous level), as in the TrustGraph corpus |
 | `graph.field` | The cached field's `Q` lists as hex pubkeys, plus the binds decided during the build (`X → P`, level, witness id) for the requested mode |
 
 ## Latency budget (targets)

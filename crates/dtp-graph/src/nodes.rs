@@ -53,9 +53,9 @@ fn round_trip_u64(digits: &str) -> Option<u64> {
 }
 
 impl NodeKey {
-    /// Key for a subject value (lowercased here).
+    /// Key for a subject value (normalized here, gap G5 fixed).
     pub fn parse(value: &str) -> NodeKey {
-        let lower = value.to_lowercase();
+        let lower = dtp_model::subject::normalize_key(value);
         if let Some(bytes) = dtp_model::hex32(&lower) {
             return NodeKey::Hex(bytes);
         }

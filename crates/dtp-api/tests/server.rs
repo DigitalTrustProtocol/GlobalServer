@@ -318,7 +318,15 @@ async fn ingest_then_resolve_lookup_and_graph_ops() {
             json!({ "centerId": format!("p:{}", bob.pubkey()) }),
         )
         .await;
-    assert_eq!(hood[2]["nodes"].as_array().unwrap().len(), 4, "{hood}");
+    // alice → bob, bob → carol / user:id:42, and bob's rating arrow to post:id:7.
+    assert_eq!(hood[2]["nodes"].as_array().unwrap().len(), 5, "{hood}");
+    assert!(
+        hood[2]["edges"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|e| e["kind"] == 32014 && e["value"] == 1)
+    );
 
     let frontier = r
         .dtp(
